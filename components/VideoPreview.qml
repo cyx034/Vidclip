@@ -3,18 +3,21 @@ import QtQuick.Controls
 import style
 import QtMultimedia
 
-Rectangle {
+Item {
     id: root
-    color: Style.v_background
-    border.color: Style.border
-    border.width: 1
-
     property string mediaUrl: ""
     property string mediaType: ""  // "video", "audio", "image"
-    //property bool isPlaying: mediaPlayer.playbackState === MediaPlayer.PlayingState
 
-    signal mediaFullScreen()
-    property Window rootWindow: Window.window
+    signal mediaFullScreen(bool isfull)
+
+    Rectangle{
+        anchors.fill:parent
+        color: Style.v_background
+        border.color: Style.border
+        border.width: 1
+    }
+
+
 
     Column{
         //spacing: 2
@@ -22,7 +25,7 @@ Rectangle {
             //anchors.centerIn: parent
             id:mediaId
             width: root.width
-            height: root.height-45
+            height: root.height-50
             color:Style.v_background
             MediaPlayer {
                 id: mediaPlayer
@@ -41,6 +44,15 @@ Rectangle {
                 fillMode: VideoOutput.PreserveAspectFit
                 visible: mediaType === "video"
             }
+
+            Image {
+                id: imageDisplay
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectFit
+                visible: mediaType === "image"
+                source: mediaType === "image" ? mediaUrl : ""
+                asynchronous: true  //异步加载
+            }
         }
 
         Rectangle{
@@ -55,15 +67,36 @@ Rectangle {
                 icon.source: "../image/volume.svg"
 
             }*/
+
             Slider{
                 id:timeSliderId
-                width: parent.width
+                width: parent.width-150
                 from: 0
                 to:mediaPlayer.duration
                 value: mediaPlayer.position
 
                 onMoved: {
                     mediaPlayer.position = value
+                }
+            }
+            Row{
+                id:timeRow
+                anchors.right: parent.right
+                spacing: 5
+                Label{
+
+                    text:formatTime(mediaPlayer.position)
+                    font.pixelSize: 13
+                    color: Style.textcolor
+                }
+                Label{
+                    text:"/"
+                    color: Style.textcolor
+                }
+                Label{
+                    text:formatTime(mediaPlayer.duration)
+                    font.pixelSize: 13
+                    color: Style.textcolor
                 }
             }
 
@@ -138,7 +171,7 @@ Rectangle {
                 width: fullImageId.implicitWidth
                 height: fullImageId.implicitHeight
                 color: Style.v_time
-                scale: 0.6
+                scale: 0.5
                 property bool fullscreenAction: false
                 Image {
                     id:fullImageId
@@ -148,11 +181,10 @@ Rectangle {
                     onTapped:{
                         if(!fullId.fullscreenAction){
                             fullId.fullscreenAction = true
-                            rootWindow.showMaximized()
-                            mediaFullScreen()
+                            mediaFullScreen(true)
                         }else{
                             fullId.fullscreenAction = false
-                            rootWindow.showNormal()
+                            mediaFullScreen(false)
                         }
 
                     }
@@ -165,7 +197,7 @@ Rectangle {
                 width: volumeImageId.implicitWidth
                 height: volumeImageId.implicitHeight
                 color: Style.v_time
-                scale: 0.6
+                scale: 0.5
                 Image {
                     id:volumeImageId
                     source: "../image/volume.svg"
@@ -219,6 +251,17 @@ Rectangle {
         mediaUrl = url
         mediaType = type
         mediaPlayer.play()
+        playId.isplay = true
+    }
+
+    function formatTime(ms) {
+        if (ms <= 0) return "00:00:00"
+        let total = Math.floor(ms / 1000)
+        let h = Math.floor(total / 3600)
+        let m = Math.floor((total % 3600) / 60)
+        let s = total % 60
+        let pad = (n) => n.toString().padStart(2, "0")
+        return `${pad(h)}:${pad(m)}:${pad(s)}`
     }
 
 }

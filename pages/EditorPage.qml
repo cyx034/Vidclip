@@ -10,6 +10,9 @@ Item {
     property string currentMediaUrl: ""
     property string currentMediaType: ""
 
+    property bool previewFullscreen: false
+    property Window rootWindow: Window.window
+
     ColumnLayout{
         anchors.fill: parent
 
@@ -20,6 +23,7 @@ Item {
             MaterialBin{
                 Layout.preferredWidth: 480
                 Layout.fillHeight: true
+                visible: !previewFullscreen
                 onMediaSelected: function(fileUrl,fileType){
                     currentMediaUrl = fileUrl
                     currentMediaType = fileType
@@ -31,8 +35,21 @@ Item {
                 id:videoPreview
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onMediaFullScreen: function(){
+                onMediaFullScreen: function(isfull){
+                    previewFullscreen = isfull
+                    if(isfull){
+                        if(rootWindow.menuBar){
+                            rootWindow.menuBar.visible = !isfull
 
+                        }
+                        rootWindow.showFullScreen()
+                    }else{
+                        if(rootWindow.menuBar){
+                            rootWindow.menuBar.visible = !isfull
+
+                        }
+                        rootWindow.showNormal()
+                    }
                 }
             }
         }
@@ -40,6 +57,7 @@ Item {
         TimelineArea{
             Layout.fillWidth: true
             Layout.preferredHeight: 400
+            visible: !previewFullscreen
         }
 
     }

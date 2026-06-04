@@ -5,17 +5,21 @@ import QtMultimedia
 import style
 import Thumbnailer 1.0
 
-Rectangle{
+Item{
     id:root
-    color: Style.m_background
-    border.color: Style.border
-    border.width: 1
-
     property real thumbWidth: 128
     property real thumbHeight: thumbWidth * 9 / 16
 
     property int currentIndex: -1
     signal mediaSelected(string fileUrl, string fileType)
+
+    Rectangle{
+        anchors.fill: parent
+        color: Style.m_background
+        border.color: Style.border
+        border.width: 1
+    }
+
 
     Rectangle{
         id:importButtonId
@@ -82,11 +86,11 @@ Rectangle{
             color: "transparent"
 
             Image {
+                id:materialItemId
                 anchors.fill: parent
                 source: model.thumbnail
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
-                sourceSize: Qt.size(thumbWidth, thumbHeight)
             }
 
             Text {
@@ -99,14 +103,30 @@ Rectangle{
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
             }
-            TapHandler {
-                    onTapped: {
-                        currentIndex = index
-                        // 发出选中信号，传递文件URL和类型
-                        var fileUrl = "file://" + model.path
-                        mediaSelected(fileUrl, model.type)
-                    }
+
+            Drag.active: dragHandler.active
+            Drag.dragType: Drag.Automatic
+            Drag.supportedActions: Qt.CopyAction
+            Drag.imageSource: model.thumbnail
+            Drag.imageSourceSize: Qt.size(thumbWidth,thumbHeight)
+            Drag.mimeData: {"text/uri-list": "file://" + model.path}
+            Drag.hotSpot.x: thumbWidth / 2
+            Drag.hotSpot.y: thumbHeight / 2
+
+            DragHandler {
+                id: dragHandler
+                target: null
             }
+
+            TapHandler {
+                onTapped: {
+                    currentIndex = index
+                    // 发出选中信号，传递文件URL和类型
+                    var fileUrl = "file://" + model.path
+                    mediaSelected(fileUrl, model.type)
+                }
+            }
+
         }
     }
 
@@ -171,5 +191,6 @@ Rectangle{
 
 
 }
+
 
 
