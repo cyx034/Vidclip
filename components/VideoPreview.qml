@@ -52,6 +52,18 @@ Item {
                 source: mediaType === "image" ? mediaUrl : ""
                 asynchronous: true  //异步加载
             }
+
+            TapHandler{
+                onTapped: {
+                    if(playId.isplay === true){
+                        playId.isplay = false
+                        mediaPlayer.pause()
+                    }else{
+                        playId.isplay = true
+                        mediaPlayer.play()
+                    }
+                }
+            }
         }
 
         Rectangle{
