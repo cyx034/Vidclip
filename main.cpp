@@ -5,7 +5,6 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-    qmlRegisterType<VideoThumbnailer>("Thumbnailer", 1, 0, "VideoThumbnailer");
 
     QQmlApplicationEngine engine;
     QObject::connect(
@@ -15,7 +14,7 @@ int main(int argc, char *argv[])
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
     engine.addImportPath("../..");
-    engine.loadFromModule("Vidclip", "Main");
+    engine.loadFromModule("Vidclip", "Window");
 
     return QGuiApplication::exec();
 }

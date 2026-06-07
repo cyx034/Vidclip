@@ -17,20 +17,23 @@ qt_add_qml_module(appVidclip
     URI Vidclip
     VERSION 1.0
     SOURCES     main.cpp
-    QML_FILES   Main.qml
+    QML_FILES   Window.qml
     QML_FILES style/Style.qml
-    QML_FILES components/AppMenuBar.qml
     QML_FILES components/VideoPreview.qml
-    QML_FILES pages/EditorPage.qml
+    QML_FILES content/Content.qml
     QML_FILES components/MaterialBin.qml
     QML_FILES components/TimelineArea.qml
-    SOURCES backend/videothumbnailer.h  backend/videothumbnailer.cpp
+    QML_FILES action/Actions.qml
+    SOURCES backend/videothumbnailer.cpp backend/videothumbnailer.h
 )
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FFMPEG REQUIRED libavcodec libavformat libavutil libswscale)
-target_include_directories(appVidclip PRIVATE ${FFMPEG_INCLUDE_DIRS})
+target_include_directories(appVidclip PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/backend
+    ${FFMPEG_INCLUDE_DIRS})
 target_link_directories(appVidclip PRIVATE ${FFMPEG_LIBRARY_DIRS})
+
 
 target_compile_features(appVidclip PRIVATE cxx_std_23)
 target_link_libraries(appVidclip
@@ -54,6 +57,8 @@ target_sources(appVidclip
         BASE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}
         FILES  ${VIDCLIP_MODULE_FILES}
 )
+
+
 
 #include_directories(/usr/include/ffmpeg4.4)
 

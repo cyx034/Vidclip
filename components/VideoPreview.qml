@@ -18,7 +18,6 @@ Item {
     }
 
 
-
     Column{
         //spacing: 2
         Rectangle{

@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtMultimedia
 import style
-import Thumbnailer 1.0
+import Vidclip 1.0
 
 Item{
     id:root
@@ -141,7 +141,7 @@ Item{
 
         if (fileType === "video") {
 
-            let thumbnailer = Qt.createQmlObject('import Thumbnailer 1.0; VideoThumbnailer {}', root)
+            let thumbnailer = Qt.createQmlObject('import Vidclip 1.0; VideoThumbnailer {}', root)
             if (thumbnailer === null) {
                 console.error("创建 VideoThumbnailer 失败，请检查注册");
                 return;
