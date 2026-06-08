@@ -3,12 +3,24 @@ import QtQuick.Controls
 import style
 import "./components"
 import "./content"
+import action
 
 ApplicationWindow {
     width: 1400
     height: 1000
     visible: true
     title: qsTr("MediaPlayer")
+
+    component MMenuItem:MenuItem{
+        // 设置字体大小
+        font.pixelSize: Style.fontSizeNormal
+        // 设置文本颜色 (通过palette)
+        palette.text: Style.textcolor
+        palette.buttonText: Style.textcolor
+        background: Rectangle{
+            color: parent.highlighted ? Style.highlight : Style.surface
+        }
+    }
 
     background:Rectangle {
         anchors.fill:parent
@@ -45,25 +57,18 @@ ApplicationWindow {
                     color: parent.highlighted ? Style.highlight : Style.surface
                 }
             }
-            Action { text: qsTr("New");icon.name:"document-new"}
-            Action { text: qsTr("import") }
-            Action { text: qsTr("export") }
-
-            /*Component.onCompleted: {
-                m.addAction(Actions.open)
-            }
-
-            MenuItem{action:Actions.save}*/
-
+            MMenuItem{action:Actions._new}
+            MMenuItem{action:Actions._import}
+            MMenuItem{action:Actions._export}
             MenuSeparator {
                 contentItem: Rectangle {
                     color: Style.border
                 }
             }
-            /*Action{ text:qsTr("exit") }*/
+            MMenuItem{action:Actions.quit}
         }
 
-        Menu {
+        /*Menu {
             title: qsTr("Edit")
             delegate: MenuItem {
                 contentItem: Text { text: parent.text; color: Style.textcolor}
@@ -75,7 +80,7 @@ ApplicationWindow {
             Action { text: qsTr("shear") }
             Action { text: qsTr("paste") }
             Action { text: qsTr("delete") }
-        }
+        }*/
 
         Menu {
             title: qsTr("Setting")
@@ -83,7 +88,7 @@ ApplicationWindow {
                 contentItem: Text { text: parent.text; color: Style.textcolor }
                 background: Rectangle { color: parent.highlighted ? Style.highlight : Style.surface }
             }
-            Action { text: qsTr("language") }
+            MMenuItem{action:Actions.language}
         }
 
         Menu {
@@ -93,7 +98,7 @@ ApplicationWindow {
                 background: Rectangle { color: parent.highlighted ? Style.highlight : Style.surface }
 
             }
-            Action { text: qsTr("about") }
+            MMenuItem{action:Actions.about}
         }
     }
 

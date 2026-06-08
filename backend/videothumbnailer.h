@@ -16,9 +16,6 @@ extern "C" {
 class VideoThumbnailer : public QObject
 {
     Q_OBJECT
-    /*Q_PROPERTY(QString author READ author WRITE setAuthor NOTIFY authorChanged)
-    Q_PROPERTY(QDateTime creationDate READ creationDate WRITE setCreationDate NOTIFY creationDateChanged)
-    QML_ELEMENT  // 使用这些宏需要 #include <QtQml/qmlregistration.h>*/
     QML_ELEMENT
 public:
     explicit VideoThumbnailer(QObject *parent = nullptr);

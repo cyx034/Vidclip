@@ -1,24 +1,45 @@
 import QtQuick
 import QtQuick.Controls
 import style
+import QtQuick.Layouts
+import action
 
 Item {
     id: root
     Rectangle{
         anchors.fill:parent
         color: Style.t_background
-        //border.color: Style.border
-        //border.width: 1
+        border.color: Style.border
+        border.width: 1
     }
     ListModel {
         id: clipModel
         // 每个元素：{ trackId, startSec, durationSec, type, sourceUrl }
     }
 
+    ToolBar{
+        id:toolBarId
+        anchors.top:parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.margins: 1
+        height: 40
+        background: Rectangle{color:Style.surface}
+        RowLayout {
+            anchors.fill: parent
+            ToolButton {
+            }
+        }
+    }
+
 
     ScrollView {
-        anchors.fill: parent
+        anchors.top: toolBarId.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
+        anchors.margins: 1
 
         /*Row{
             id:rulerRow

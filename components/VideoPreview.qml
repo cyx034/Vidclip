@@ -71,14 +71,6 @@ Item {
             height: root.height-mediaId.height
             color: Style.v_time
 
-            /*Button{
-                width: 30
-                height: 30
-                icon.color: Style.v_time
-                icon.source: "../image/volume.svg"
-
-            }*/
-
             Slider{
                 id:timeSliderId
                 width: parent.width-150
