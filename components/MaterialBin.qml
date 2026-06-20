@@ -13,6 +13,8 @@ Item{
     property int currentIndex: -1
     signal mediaSelected(string fileUrl, string fileType)
 
+    property alias materialModel: materialModel
+
     Rectangle{
         anchors.fill: parent
         color: Style.m_background
@@ -44,7 +46,7 @@ Item{
             anchors.centerIn: parent
             height: 40
             width: 40
-            source: "../image/add.svg"
+            source: "qrc:/image/add.svg"
         }
     }
 
@@ -109,7 +111,7 @@ Item{
             Drag.supportedActions: Qt.CopyAction
             Drag.imageSource: model.thumbnail
             Drag.imageSourceSize: Qt.size(thumbWidth,thumbHeight)
-            Drag.mimeData: {"text/uri-list": "file://" + model.path}
+            Drag.mimeData: {"text/uri-list": "file://" + model.source.filePath}
             Drag.hotSpot.x: thumbWidth / 2
             Drag.hotSpot.y: thumbHeight / 2
 
@@ -122,7 +124,7 @@ Item{
                 onTapped: {
                     currentIndex = index
                     // 发出选中信号，传递文件URL和类型
-                    var fileUrl = "file://" + model.path
+                    var fileUrl = "file://" + model.source.filePath
                     mediaSelected(fileUrl, model.type)
                 }
             }
@@ -139,6 +141,16 @@ Item{
 
         let fileType = getFileType(fileName)   // 返回 "video", "audio", "image"
 
+        let helper = Qt.createQmlObject('import Vidclip 1.0; MediaSource {}', root)
+        let mediaSource = helper.fromFile(filePath)
+        helper.destroy()
+        if (!mediaSource) {
+            console.error("无法解析文件:", filePath)
+            return
+        }
+
+        console.log(mediaSource.filePath)
+
         if (fileType === "video") {
 
             let thumbnailer = Qt.createQmlObject('import Vidclip 1.0; VideoThumbnailer {}', root)
@@ -148,7 +160,7 @@ Item{
             }
             thumbnailer.thumbnailReady.connect(function(path, image) {
                 materialModel.append({
-                    "name": fileName, "path": filePath, "type": fileType,
+                    "name": fileName, "source": mediaSource, "type": fileType,
                     "thumbnail": image
                 })
                 thumbnailer.destroy()
@@ -157,8 +169,8 @@ Item{
             thumbnailer.thumbnailFailed.connect(function(path, error) {
                 console.error("缩略图生成失败:", filePath, error);
                 materialModel.append({
-                    "name": fileName, "path": filePath, "type": fileType,
-                    "thumbnail": "../image/video.png"
+                    "name": fileName, "source": mediaSource, "type": fileType,
+                    "thumbnail": "qrc:/image/video.png"
                 })
                 thumbnailer.destroy()
             });
@@ -167,16 +179,16 @@ Item{
         if (fileType === "image") {
             materialModel.append({
                 name: fileName,
-                path: filePath,
+                source: mediaSource,
                 type: fileType,
                 thumbnail: fileUrl.toString()
             })
         }else if(fileType === "audio"){
             materialModel.append({
                 name: fileName,
-                path: filePath,
+                source: mediaSource,
                 type: fileType,
-                thumbnail: "../image/music.png"
+                thumbnail: "qrc:/image/music.png"
             })
         }
     }
@@ -188,7 +200,6 @@ Item{
         if (["jpg", "jpeg", "png", "gif", "bmp", "svg"].includes(ext)) return "image"
         return "unknown"
     }
-
 
 }
 

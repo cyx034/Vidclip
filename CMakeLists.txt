@@ -13,6 +13,24 @@ find_package(Qt6 REQUIRED COMPONENTS Quick)
 qt_standard_project_setup(REQUIRES 6.11)
 
 qt_add_executable(appVidclip  WIN32)
+
+qt_add_resources(appVidclip "images"
+    PREFIX "/"
+    FILES
+        image/add.svg
+        image/double-left.svg
+        image/double-right.svg
+        image/full-screen.svg
+        image/icon.jpg
+        image/music.png
+        image/off-screen.svg
+        image/pause.svg
+        image/play.svg
+        image/video-one.svg
+        image/video.png
+        image/volume.svg
+)
+
 qt_add_qml_module(appVidclip
     URI Vidclip
     VERSION 1.0
@@ -25,6 +43,8 @@ qt_add_qml_module(appVidclip
     QML_FILES components/TimelineArea.qml
     QML_FILES action/Actions.qml
     SOURCES backend/videothumbnailer.cpp backend/videothumbnailer.h
+    SOURCES backend/mediasource.h backend/mediasource.cpp
+    SOURCES backend/videoclip.h backend/videoclip.cpp
 )
 
 find_package(PkgConfig REQUIRED)

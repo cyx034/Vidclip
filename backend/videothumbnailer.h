@@ -23,11 +23,20 @@ public:
 
     Q_INVOKABLE void generateThumbnail(const QString &filePath);
 
+    Q_INVOKABLE void generateThumbnails(const QString &filePath, int count);
+
 signals:
+
     void thumbnailReady(const QString &filePath, const QString &thumbnail);
     void thumbnailFailed(const QString &filePath, const QString &error);
 
+    void thumbnailsReady(const QString &filePath, const QStringList &thumbnailUrls);
+    void thumbnailsFailed(const QString &filePath, const QString &error);
+
 private:
     QFutureWatcher<QImage> *m_watcher;
-    QImage doExtract(const QString &filePath);
+    QFutureWatcher<QStringList> *m_batchWatcher;
+
+    QImage doExtract(const QString &filePath,double timeSec);
+    QStringList extractThumbnails(const QString &filePath,int count);
 };

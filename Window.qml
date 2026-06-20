@@ -12,9 +12,7 @@ ApplicationWindow {
     title: qsTr("MediaPlayer")
 
     component MMenuItem:MenuItem{
-        // 设置字体大小
         font.pixelSize: Style.fontSizeNormal
-        // 设置文本颜色 (通过palette)
         palette.text: Style.textcolor
         palette.buttonText: Style.textcolor
         background: Rectangle{
@@ -99,6 +97,7 @@ ApplicationWindow {
 
             }
             MMenuItem{action:Actions.about}
+
         }
     }
 

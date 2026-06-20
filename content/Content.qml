@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import components
+import "../components"
 
 Item {
     id:centralId
@@ -21,6 +21,7 @@ Item {
             Layout.fillHeight: true
 
             MaterialBin{
+                id:materialBin
                 Layout.preferredWidth: 480
                 Layout.fillHeight: true
                 visible: !previewFullscreen
@@ -58,6 +59,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 400
             visible: !previewFullscreen
+            materialModel: materialBin.materialModel
         }
 
     }

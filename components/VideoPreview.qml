@@ -113,7 +113,7 @@ Item {
                 scale: 0.6
                 Image {
                     id:leftImageId
-                    source: "../image/double-left.svg"
+                    source: "qrc:/image/double-left.svg"
                 }
                 TapHandler{
                     onTapped:{
@@ -132,7 +132,7 @@ Item {
                 scale: 0.6
                 Image {
                     id:rightImageId
-                    source: "../image/double-right.svg"
+                    source: "qrc:/image/double-right.svg"
                 }
                 TapHandler{
                     onTapped:{
@@ -152,7 +152,7 @@ Item {
                 property bool isplay: true
                 Image {
                     id:playImageId
-                    source: playId.isplay?"../image/play.svg":"../image/pause.svg"
+                    source: playId.isplay?"qrc:/image/play.svg":"qrc:/image/pause.svg"
                 }
                 TapHandler{
                     onTapped:{
@@ -178,7 +178,7 @@ Item {
                 property bool fullscreenAction: false
                 Image {
                     id:fullImageId
-                    source: !fullId.fullscreenAction?"../image/full-screen.svg":"../image/off-screen.svg"
+                    source: !fullId.fullscreenAction?"qrc:/image/full-screen.svg":"qrc:/image/off-screen.svg"
                 }
                 TapHandler{
                     onTapped:{
@@ -203,7 +203,7 @@ Item {
                 scale: 0.5
                 Image {
                     id:volumeImageId
-                    source: "../image/volume.svg"
+                    source: "qrc:/image/volume.svg"
                 }
                 TapHandler{
                     onTapped:{
