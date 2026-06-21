@@ -14,6 +14,7 @@ Item{
     signal mediaSelected(string fileUrl, string fileType)
 
     property alias materialModel: materialModel
+    property alias medioDialogId: medioDialogId
 
     Rectangle{
         anchors.fill: parent

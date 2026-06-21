@@ -13,6 +13,8 @@ Item {
     property bool previewFullscreen: false
     property Window rootWindow: Window.window
 
+    property alias materialBin:materialBin
+
     ColumnLayout{
         anchors.fill: parent
 

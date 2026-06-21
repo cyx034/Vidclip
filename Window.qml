@@ -25,6 +25,15 @@ ApplicationWindow {
         color: Style.background
     }
 
+    Connections {
+        target: Actions
+        function onImportRequested() {
+            if (contentItem && contentItem.materialBin) {
+                contentItem.materialBin.medioDialogId.open()
+            }
+        }
+    }
+
     menuBar:MenuBar {
         background: Rectangle {
 
@@ -55,7 +64,6 @@ ApplicationWindow {
                     color: parent.highlighted ? Style.highlight : Style.surface
                 }
             }
-            MMenuItem{action:Actions._new}
             MMenuItem{action:Actions._import}
             MMenuItem{action:Actions._export}
             MenuSeparator {
@@ -101,6 +109,8 @@ ApplicationWindow {
         }
     }
 
-    Content{}
+    Content{
+        id:contentItem
+    }
 
 }

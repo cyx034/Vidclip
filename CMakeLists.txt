@@ -45,6 +45,7 @@ qt_add_qml_module(appVidclip
     SOURCES backend/videothumbnailer.cpp backend/videothumbnailer.h
     SOURCES backend/mediasource.h backend/mediasource.cpp
     SOURCES backend/videoclip.h backend/videoclip.cpp
+    RESOURCES readme
 )
 
 find_package(PkgConfig REQUIRED)

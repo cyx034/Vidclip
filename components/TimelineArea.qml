@@ -24,6 +24,25 @@ Item {
         id: clipModel
     }
 
+
+    component MToolButton:ToolButton{
+        checkable: true
+        // 设置字体大小
+        font.pixelSize: Style.fontSizeNormal
+        // 设置文本颜色 (通过palette)
+        palette.text: Style.textcolor
+        palette.buttonText: Style.textcolor
+        icon.width: 28
+        icon.height: 28
+        background: Rectangle{
+            color: hoverId.hovered?Style.highlight : Style.surface
+        }
+
+        HoverHandler{
+            id:hoverId
+        }
+    }
+
     ToolBar{
         id:toolBarId
         anchors.top:parent.top
@@ -33,9 +52,26 @@ Item {
         height: 40
         background: Rectangle{color:Style.surface}
         RowLayout {
-            anchors.fill: parent
-            ToolButton {
-
+            spacing: 7
+            MToolButton {
+                id:undoButton
+                action: Actions._undo
+            }
+            MToolButton{
+                id:redoButton
+                action: Actions._redo
+            }
+            MToolButton{
+                id:splitButton
+                action: Actions._split
+            }
+            MToolButton{
+                id:trim_rightButton
+                action: Actions.trim_right
+            }
+            MToolButton{
+                id:trim_leftButton
+                action: Actions.trim_left
             }
         }
     }
