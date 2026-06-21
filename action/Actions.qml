@@ -18,6 +18,9 @@ Item{
     property alias trim_left:trim_left
     property alias trim_right: trim_right
 
+    signal aboutRequested()  //about信号
+    signal exportRequested()  //export信号
+
     Action {
         id:_import
         text: qsTr("Import")
@@ -32,6 +35,9 @@ Item{
         text: qsTr("Export")
         icon.name:"document-export"
         icon.color: Style.textcolor
+        onTriggered: {
+            exportRequested()  //发射export信号
+        }
     }
 
     Action {
@@ -53,6 +59,9 @@ Item{
         id:_about
         text: qsTr("About")
         icon.name: "help-about"
+        onTriggered: {
+            aboutRequested()  // 发射about信号
+        }
     }
 
     Action{

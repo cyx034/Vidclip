@@ -19,6 +19,9 @@ QtObject {
     property color t_background: "#272727"
     property color t_shaft: "#353535"
 
+    property color d_background: "#272727"
+    property color d_button:"#707070"
+
     // 尺寸
     property int spacing: 8
     property int radius: 4
