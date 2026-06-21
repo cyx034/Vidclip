@@ -13,7 +13,8 @@ ApplicationWindow {
 
     // 预创建对话框
     Dialogs {
-        id: aboutDialog
+        id: dialogs
+        anchors.fill: parent
     }
 
     component MMenuItem:MenuItem{
@@ -118,26 +119,11 @@ ApplicationWindow {
         id:contentItem
     }
 
-    //导出设置对话框
-    ExportDialog {
-        id: exportDialog
-        onExportWithSettings: function(settings) {
-            console.log("用户选择的导出设置:", JSON.stringify(settings, null, 2))
-            var info = "格式: " + settings.format + "\n" +
-                       "分辨率: " + settings.resolution + "\n" +
-                       "帧率: " + settings.frameRate + "\n" +
-                       "码率: " + settings.bitrate + "\n" +
-                       "质量: " + settings.quality + "\n" +
-                       "编码器: " + settings.encoder + "\n" +
-                       "保存路径: " + (settings.savePath || "未指定") + "\n" +
-                       "标题: " + (settings.title || "我的视频")
-        }
-    }
 
     // 信号连接
     Component.onCompleted: {
         Actions.aboutRequested.connect(function() {
-            aboutDialog.open()
+            dialogs._aboutDialog.open()
         })
         Actions.exportRequested.connect(function() {
             exportCurrentMedia()
@@ -150,7 +136,7 @@ ApplicationWindow {
             console.log("没有导出的媒体文件！")
             return
         }
-        exportDialog.open()
+        dialogs._exportDialog.open()
     }
 
     function performExport(filePath) {

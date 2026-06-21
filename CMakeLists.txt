@@ -4,7 +4,7 @@ set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
 # set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
 set(CMAKE_CXX_MODULE_STD ON)
 
-set(QML_IMPOgit RT_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "" FORCE)
+set(QML_IMPORT_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "" FORCE)
 
 project(Vidclip VERSION 0.1 LANGUAGES CXX)
 set(QT_QML_GENERATE_QMLLS_INI ON)
@@ -29,6 +29,9 @@ qt_add_resources(appVidclip "images"
         image/video-one.svg
         image/video.png
         image/volume.svg
+        image/split.svg
+        image/trim-left.svg
+        image/trim-right.svg
 )
 
 qt_add_qml_module(appVidclip
@@ -47,7 +50,7 @@ qt_add_qml_module(appVidclip
     SOURCES backend/videoclip.h backend/videoclip.cpp
     RESOURCES readme
     QML_FILES components/Dialogs.qml
-    QML_FILES components/ExportDialog.qml
+
 )
 
 find_package(PkgConfig REQUIRED)

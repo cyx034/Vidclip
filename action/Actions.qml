@@ -80,19 +80,19 @@ Item{
 
     Action{
         id:_split
-        icon.source:"../image/split.svg"
+        icon.source:"qrc:/image/split.svg"
         icon.color: Style.textcolor
     }
 
     Action{
         id:trim_left
-        icon.source: "../image/trim-left.svg"
+        icon.source: "qrc:/image/trim-left.svg"
         icon.color: Style.textcolor
     }
 
     Action{
         id:trim_right
-        icon.source: "../image/trim-right.svg"
+        icon.source: "qrc:/image/trim-right.svg"
         icon.color: Style.textcolor
     }
 
