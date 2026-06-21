@@ -20,6 +20,7 @@ VideoClip* VideoClip::fromMediaSource(MediaSource* source, QObject* parent)
     clip->setSourceOffset(0.0);
     clip->setDuration(source->duration());
     clip->setTimelineStart(0.0);
+    clip->extractPreview();
     return clip;
 }
 
@@ -99,4 +100,24 @@ void VideoClip::move(double newTimelineStart)
 void VideoClip::updateTimelineEnd()
 {
     emit timelineEndChanged();
+}
+
+void VideoClip::extractPreview()
+{
+    int scale;
+    int startScale;
+
+    if (m_duration != 0.0) {
+        scale = m_source->duration() / m_duration;
+    } else {
+        scale = m_source->duration();
+    }
+    if (m_sourceOffset != 0.0) {
+        startScale = m_source->duration() / m_sourceOffset;
+    } else {
+        startScale = m_source->duration();
+    }
+    int mClip = m_source->urls().size() / scale;
+    int mStartScale = m_source->urls().size() / startScale;
+    m_urls = m_source->urls().mid(mStartScale, mClip);
 }

@@ -142,7 +142,7 @@ Item{
         let fileType = getFileType(fileName)   // 返回 "video", "audio", "image"
 
         let helper = Qt.createQmlObject('import Vidclip 1.0; MediaSource {}', root)
-        let mediaSource = helper.fromFile(filePath)
+        let mediaSource = helper.fromFile(filePath,fileType)
         helper.destroy()
         if (!mediaSource) {
             console.error("无法解析文件:", filePath)

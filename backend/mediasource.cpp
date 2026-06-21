@@ -13,7 +13,7 @@ MediaSource::~MediaSource()
     }
 }
 
-MediaSource* MediaSource::fromFile(const QString &filePath)
+MediaSource* MediaSource::fromFile(const QString &filePath,QString fileType)
 {
     AVFormatContext *ctx = nullptr;
     //打开输入文件
@@ -40,10 +40,16 @@ MediaSource* MediaSource::fromFile(const QString &filePath)
         }
     }
     //创建MediaSource对象，并转移ctx的所有权
-    return new MediaSource(filePath, duration, ctx, nullptr);
+    return new MediaSource(filePath, duration, fileType,ctx, nullptr);
 }
 
-MediaSource::MediaSource(const QString &filePath, double duration, AVFormatContext *ctx, QObject *parent)
-    : QObject(parent), m_filePath(filePath), m_duration(duration), m_formatCtx(ctx)
+void MediaSource::setUrls(QStringList urls)
+{
+    m_urls = urls;
+    emit urlsChanged();
+}
+
+MediaSource::MediaSource(const QString &filePath, double duration, QString fileType,AVFormatContext *ctx, QObject *parent)
+    : QObject(parent), m_filePath(filePath), m_duration(duration), m_fileType(fileType),m_formatCtx(ctx)
 {
 }
