@@ -6,7 +6,7 @@ import "./content"
 import action
 
 ApplicationWindow {
-    width: 1400
+    width: 1700
     height: 1000
     visible: true
     title: qsTr("MediaPlayer")

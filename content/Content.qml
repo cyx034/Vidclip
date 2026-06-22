@@ -15,54 +15,63 @@ Item {
 
     property alias materialBin:materialBin
 
-    ColumnLayout{
+    RowLayout{
         anchors.fill: parent
+        ColumnLayout{
 
-        RowLayout{
-            Layout.fillWidth: true
-            Layout.fillHeight: true
 
-            MaterialBin{
-                id:materialBin
-                Layout.preferredWidth: 480
-                Layout.fillHeight: true
-                visible: !previewFullscreen
-                onMediaSelected: function(fileUrl,fileType){
-                    currentMediaUrl = fileUrl
-                    currentMediaType = fileType
-                    videoPreview.setMedia(fileUrl, fileType)
-                }
-            }
-
-            VideoPreview{
-                id:videoPreview
+            RowLayout{
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onMediaFullScreen: function(isfull){
-                    previewFullscreen = isfull
-                    if(isfull){
-                        if(rootWindow.menuBar){
-                            rootWindow.menuBar.visible = !isfull
 
-                        }
-                        rootWindow.showFullScreen()
-                    }else{
-                        if(rootWindow.menuBar){
-                            rootWindow.menuBar.visible = !isfull
+                MaterialBin{
+                    id:materialBin
+                    Layout.preferredWidth: 440
+                    Layout.fillHeight: true
+                    visible: !previewFullscreen
+                    onMediaSelected: function(fileUrl,fileType){
+                        currentMediaUrl = fileUrl
+                        currentMediaType = fileType
+                        videoPreview.setMedia(fileUrl, fileType)
+                    }
+                }
 
+                VideoPreview{
+                    id:videoPreview
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    onMediaFullScreen: function(isfull){
+                        previewFullscreen = isfull
+                        if(isfull){
+                            if(rootWindow.menuBar){
+                                rootWindow.menuBar.visible = !isfull
+
+                            }
+                            rootWindow.showFullScreen()
+                        }else{
+                            if(rootWindow.menuBar){
+                                rootWindow.menuBar.visible = !isfull
+
+                            }
+                            rootWindow.showNormal()
                         }
-                        rootWindow.showNormal()
                     }
                 }
             }
-        }
 
-        TimelineArea{
-            Layout.fillWidth: true
-            Layout.preferredHeight: 400
+            TimelineArea{
+                Layout.fillWidth: true
+                Layout.preferredHeight: 400
+                visible: !previewFullscreen
+                materialModel: materialBin.materialModel
+            }
+
+        }
+        ParameterPanel{
+            Layout.preferredWidth: 320
+            Layout.fillHeight: true
             visible: !previewFullscreen
-            materialModel: materialBin.materialModel
-        }
 
+        }
     }
 }
