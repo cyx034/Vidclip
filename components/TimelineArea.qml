@@ -73,6 +73,10 @@ Item {
                 id:trim_leftButton
                 action: Actions.trim_left
             }
+            MToolButton{
+                id:deleteButton
+                action: Actions._delete
+            }
         }
     }
 

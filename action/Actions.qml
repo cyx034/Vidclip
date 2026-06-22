@@ -17,6 +17,7 @@ Item{
     property alias _split: _split
     property alias trim_left:trim_left
     property alias trim_right: trim_right
+    property alias _delete: _delete
 
     signal aboutRequested()  //about信号
     signal exportRequested()  //export信号
@@ -93,6 +94,12 @@ Item{
     Action{
         id:trim_right
         icon.source: "qrc:/image/trim-right.svg"
+        icon.color: Style.textcolor
+    }
+
+    Action{
+        id:_delete
+        icon.name:"delete"
         icon.color: Style.textcolor
     }
 
