@@ -78,6 +78,22 @@ Item {
                 action: Actions._delete
             }
         }
+        Button {
+            anchors.right: parent.right
+            anchors.rightMargin: 4
+            anchors.verticalCenter: parent.verticalCenter
+            action: Actions._export
+            display: Button.TextOnly   // 只显示文字，隐藏图标
+
+            palette.text: Style.textcolor
+            palette.buttonText: Style.textcolor
+            background: Rectangle {
+                color: parent.hovered ? Style.highlight : Style.background
+                border.color: Style.border
+                border.width: 1
+                radius: 4
+            }
+        }
     }
 
 

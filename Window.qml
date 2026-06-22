@@ -139,12 +139,4 @@ ApplicationWindow {
         dialogs._exportDialog.open()
     }
 
-    function performExport(filePath) {
-        // 未使用
-    }
-
-    function showExportProgress(outputPath) {
-        // 未使用
-    }
-
 }
