@@ -570,7 +570,7 @@ Item{
             }
 
             Text {
-                text: "<a href='https://github.com/yourname/vidclip'>https://github.com/yourname/vidclip</a>"
+                text: "<a href='https://github.com/cyx034/vidclip'>https://github.com/cyx034/vidclip</a>"
                 font.pixelSize: 13
                 color: Style.textcolor
                 onLinkActivated: Qt.openUrlExternally(link)
