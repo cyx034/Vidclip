@@ -4,6 +4,7 @@ import style
 import QtQuick.Layouts
 import action
 import Vidclip 1.0
+import QtQuick.Shapes
 
 Item {
     id: root
@@ -13,6 +14,11 @@ Item {
     property var materialModel: null
 
     signal mediaReady(var mediaSource)
+
+    signal seekRequested(real timeSeconds)
+    property bool _updatingPointer: false
+
+    signal clipInformation(var clip)
 
     Rectangle{
         anchors.fill:parent
@@ -78,22 +84,6 @@ Item {
                 action: Actions._delete
             }
         }
-        Button {
-            anchors.right: parent.right
-            anchors.rightMargin: 4
-            anchors.verticalCenter: parent.verticalCenter
-            action: Actions._export
-            display: Button.TextOnly   // 只显示文字，隐藏图标
-
-            palette.text: Style.textcolor
-            palette.buttonText: Style.textcolor
-            background: Rectangle {
-                color: parent.hovered ? Style.highlight : Style.background
-                border.color: Style.border
-                border.width: 1
-                radius: 4
-            }
-        }
     }
 
 
@@ -105,6 +95,8 @@ Item {
         anchors.bottom: parent.bottom
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
         anchors.margins: 1
+
+
 
         contentWidth: timelineContent.width+100
         contentHeight: timelineContent.height
@@ -148,12 +140,11 @@ Item {
                     anchors.leftMargin: 10
                     orientation: ListView.Horizontal
                     model: clipModel
+                    currentIndex:-1
                     delegate:Rectangle {
                         width:model.source.duration*root.pixelsPerSecond
                         height:3*pixelsPerSecond/16*9+4
                         color: "transparent"
-                        border.color: hoverId.hovered?"#ffffff":"transparent"
-                        border.width: 2
                         property var urls: model.source.urls
                         Row{
                             anchors.left: parent.left
@@ -165,17 +156,106 @@ Item {
                                     height:width/16*9
                                     source:modelData
                                     fillMode: Image.PreserveAspectCrop
-                                    //clip: true
+                                    clip: true
                                 }
                             }
                         }
-
+                        Rectangle{
+                            id:broderId
+                            anchors.fill:parent
+                            border.color: (timeThumbnailViewId.currentIndex === index  || hoverId.hovered) ? "#ffffff" : "transparent"
+                            radius: 10
+                            border.width: 2
+                            color: "transparent"
+                        }
                         HoverHandler {
                             id:hoverId
+                        }
+                        TapHandler{
+                            id:tapId
+                            onTapped: (event)=> {
+                                timeThumbnailViewId.currentIndex = index
+                                event.accepted = true
+                                clipInformation(timeThumbnailViewId.currentItem.source)
+                            }
                         }
 
                     }
                 }
+
+                Rectangle{
+                    id:timePointerId
+                    width: 17
+                    height: 326
+                    x: 3
+                    y: parent.height / 2 - height / 2+10
+                    color: "transparent"
+                    Rectangle{
+                        width: 2
+                        height: 312
+                        anchors.bottom: parent.bottom
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: "#ffffff"
+
+                    }
+                    Shape {
+                        id: triangle
+                        width: 17
+                        height: 14
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+
+                        ShapePath {
+                            fillColor: "#ffffff"
+                            strokeColor: "transparent"
+                            startX: 0
+                            startY: 0
+                            PathLine { x: triangle.width; y: 0 }
+                            PathLine { x: triangle.width / 2; y: triangle.height }
+                            PathLine { x: 0; y: 0 }
+                        }
+                    }
+
+                    DragHandler {
+                        id: dragHandler
+                        target: timePointerId
+                        xAxis.enabled:true
+                        yAxis.enabled: false
+                        xAxis.minimum: 3
+                        xAxis.maximum: timelineContent.width
+
+                    }
+                    onXChanged: {
+                        if (!_updatingPointer) {
+                            var time = (timePointerId.x - 10) / pixelsPerSecond
+                            if (time < 0) time = 0
+                            if (time > totalDuration) time = totalDuration
+                            seekRequested(time)
+                        }
+
+                        var flickable = scrollView.contentItem
+                        if (!flickable) return
+                        var viewWidth = scrollView.width
+                        if (viewWidth <= 0) return
+
+                        var margin = 30
+                        var leftBound = flickable.contentX + margin
+                        var rightBound = flickable.contentX + viewWidth - margin
+
+                        var newContentX = flickable.contentX
+                        if (x < leftBound) {
+                            newContentX = Math.max(0, x - margin)
+                        } else if (x > rightBound) {
+                            var maxContentX = flickable.contentWidth - viewWidth
+                            newContentX = Math.min(maxContentX, x - viewWidth + margin)
+                        }
+                        if (newContentX !== flickable.contentX) {
+                            flickable.contentX = newContentX
+                        }
+                    }
+
+                }
+
 
 
                 DropArea {
@@ -227,6 +307,20 @@ Item {
                     }
                 }
             }
+
+            TapHandler{
+                onTapped:(eventPoint)=> {
+
+                    var pos = eventPoint.position
+                    timePointerId.x = pos.x
+                    var posInListView = pos
+                    if (pos.y > videoLineId.y && pos.y<videoLineId.y+timeThumbnailViewId.height) {
+                        return
+                    }
+
+                    timeThumbnailViewId.currentIndex = -1
+                }
+            }
         }
     }
 
@@ -244,6 +338,19 @@ Item {
             updateTotalDuration()
 
         }
+    }
+
+    Component.onCompleted: {
+        setPointerPosition(0)
+    }
+
+    function setPointerPosition(timeSeconds) {
+        if (timeSeconds < 0) timeSeconds = 0
+        if (timeSeconds > totalDuration) timeSeconds = totalDuration
+        var newX = timeSeconds * pixelsPerSecond + 10
+        _updatingPointer = true
+        timePointerId.x = newX
+        _updatingPointer = false
     }
 
 

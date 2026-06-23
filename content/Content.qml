@@ -60,6 +60,7 @@ Item {
             }
 
             TimelineArea{
+                id: timelineAreaId
                 Layout.fillWidth: true
                 Layout.preferredHeight: 400
                 visible: !previewFullscreen
@@ -73,5 +74,17 @@ Item {
             visible: !previewFullscreen
 
         }
+    }
+
+    Component.onCompleted: {
+        timelineAreaId.seekRequested.connect(function(time) {
+            videoPreview.seekTo(time)
+        })
+        videoPreview.progressChanged.connect(function(seconds) {
+            timelineAreaId.setPointerPosition(seconds)
+        })
+        timelineAreaId.clipInformation.connect(function(clip){
+            //填入ParameterPanel的槽
+        })
     }
 }

@@ -153,7 +153,7 @@ QImage VideoThumbnailer::doExtract(const QString &filePath,double timeSec)
 QStringList VideoThumbnailer::extractThumbnails(const QString &filePath, int count)
 {
     QStringList imageUrls;
-    count = qBound(1, count, 100);  // 限制最大 100 张
+    count = qBound(1, count, 200);
 
     //获取视频总时长（秒）
     AVFormatContext *pFormatCtx = nullptr;

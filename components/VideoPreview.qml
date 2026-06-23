@@ -10,6 +10,8 @@ Item {
 
     signal mediaFullScreen(bool isfull)
 
+    signal progressChanged(real seconds)
+
     Rectangle{
         anchors.fill:parent
         color: Style.v_background
@@ -34,6 +36,10 @@ Item {
                     //volume: volumeControl.value
                 }
                 videoOutput: videoOutput
+
+                onPositionChanged: function(position) {
+                    progressChanged(position / 1000.0)
+                }
 
             }
 
@@ -152,7 +158,7 @@ Item {
                 property bool isplay: true
                 Image {
                     id:playImageId
-                    source: playId.isplay?"qrc:/image/play.svg":"qrc:/image/pause.svg"
+                    source: playId.isplay?"qrc:/image/pause.svg":"qrc:/image/play.svg"
                 }
                 TapHandler{
                     onTapped:{
@@ -248,6 +254,11 @@ Item {
 
             }
         }
+    }
+
+    function seekTo(seconds) {
+        if (seconds < 0) seconds = 0
+        mediaPlayer.position = seconds * 1000
     }
 
     function setMedia(url, type) {
