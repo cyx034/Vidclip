@@ -7,6 +7,29 @@ import style
 Item{
     property alias _aboutDialog: aboutDialog
     property alias _exportDialog: exportDialog
+    property alias _noExportDialog: noExportDialog
+
+    Dialog {
+        id: noExportDialog
+        modal: true
+        width: 300
+        height: 150
+        anchors.centerIn: parent
+        background: Rectangle {
+            color: Style.background
+        }
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            Text {
+                text: "没有可导出的媒体文件"
+                color: Style.textcolor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+            }
+        }
+    }
 
     Dialog {
         id: exportDialog

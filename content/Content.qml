@@ -19,7 +19,6 @@ Item {
         anchors.fill: parent
         ColumnLayout{
 
-
             RowLayout{
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -69,6 +68,7 @@ Item {
 
         }
         ParameterPanel{
+            id:parameterPanelId
             Layout.preferredWidth: 320
             Layout.fillHeight: true
             visible: !previewFullscreen
@@ -84,7 +84,7 @@ Item {
             timelineAreaId.setPointerPosition(seconds)
         })
         timelineAreaId.clipInformation.connect(function(clip){
-            //填入ParameterPanel的槽
+            parameterPanelId.showClipInfo(clip)
         })
     }
 }

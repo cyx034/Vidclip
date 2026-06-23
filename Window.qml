@@ -119,7 +119,6 @@ ApplicationWindow {
         id:contentItem
     }
 
-
     // 信号连接
     Component.onCompleted: {
         Actions.aboutRequested.connect(function() {
@@ -133,10 +132,9 @@ ApplicationWindow {
     // 导出入口函数：检查媒体是否存在，然后打开导出设置对话框
     function exportCurrentMedia() {
         if (!contentItem.currentMediaUrl) {
-            console.log("没有导出的媒体文件！")
-            return
+            dialogs._noExportDialog.open()
+        }else{
+            dialogs._exportDialog.open()
         }
-        dialogs._exportDialog.open()
     }
-
 }

@@ -17,17 +17,17 @@ Item {
     }
 
     //默认样式
-    /*Item{
+    Item{
         id:infoItemId
         anchors.fill:parent
+        visible:true
 
         // 内部属性（存储显示数据，并设置默认值）
         property string _projectName: "UnnamedProject"
         property string _projectFileLocation: "/"
-        property string _resolution: "1920x1080"
+        property string _ratio:"adapt"
+        property string _resolution: "adapt"
         property string _frameRate: "25fps"
-        property string _colorSpace: "SDR-Rec.709"
-        property string _sampleRate: "44100Hz"
         property string _duration: "00:00:00:00"
 
         Text {
@@ -69,17 +69,14 @@ Item {
             MText { text: "ProjectFileLocation: ";}
             MText { text: infoItemId._projectFileLocation;}
 
-            MText { text: "Resolution: ";}
+            MText { text: "Ratio: ";}  //比例
+            MText { text: infoItemId._ratio;}
+
+            MText { text: "Resolution: ";}  //分辨率
             MText { text: infoItemId._resolution;}
 
-            MText { text: "FrameRate: ";}
+            MText { text: "FrameRate: ";}   //帧率
             MText { text: infoItemId._frameRate;}
-
-            MText { text: "ColorSpace: ";}     //色彩空间
-            MText { text: infoItemId._colorSpace;}
-
-            MText { text: "SampleRate: ";}   //采样率
-            MText { text: infoItemId._sampleRate;}
 
             MText { text: "Duration: ";}
             MText { text: infoItemId._duration;}
@@ -95,16 +92,13 @@ Item {
             if (info.sampleRate !== undefined) _sampleRate = info.sampleRate
             if (info.duration !== undefined) _duration = info.duration
         }
-
-        Connections{
-            //连接信号
-        }
-    }*/
+    }
 
     //剪辑样式
     Item {
         id: labelId
         anchors.fill: parent
+        visible:false
 
         // 当前选中的标签索引（0:Video, 1:Audio, 2:Speed）
         property int currentIndex: 0
@@ -188,7 +182,6 @@ Item {
             }
 
         }
-
 
         // 页面内容（根据当前索引切换）
         StackLayout {
@@ -498,6 +491,7 @@ Item {
                             }
                         }
                     }
+
                 }
 
             }
@@ -549,5 +543,10 @@ Item {
                 }
             }
         }
+    }
+
+    function showClipInfo(clip) {
+        infoItemId.visible = false
+        labelId.visible = true
     }
 }
