@@ -15,6 +15,8 @@ Item {
 
     property alias materialBin:materialBin
 
+    property var clip:[]
+
     RowLayout{
         anchors.fill: parent
         ColumnLayout{
@@ -64,6 +66,10 @@ Item {
                 Layout.preferredHeight: 400
                 visible: !previewFullscreen
                 materialModel: materialBin.materialModel
+                onTotalDurationChanged: {
+
+                    videoPreview.totalDuration = totalDuration*1000
+                }
             }
 
         }
@@ -77,6 +83,11 @@ Item {
     }
 
     Component.onCompleted: {
+        timelineAreaId.openTimeLineMedia.connect(function(time){
+            if(!videoPreview.materialModel)
+                videoPreview.setTimeLineMedia(timelineAreaId.clips,timelineAreaId.totalDuration,time)
+        })
+
         timelineAreaId.seekRequested.connect(function(time) {
             videoPreview.seekTo(time)
         })

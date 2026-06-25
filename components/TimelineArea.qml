@@ -20,12 +20,16 @@ Item {
 
     signal clipInformation(var clip)
 
+    property var clips: []
+    signal openTimeLineMedia(real time)
+
     Rectangle{
         anchors.fill:parent
         color: Style.t_background
         border.color: Style.border
         border.width: 1
     }
+
     ListModel {
         id: clipModel
     }
@@ -158,6 +162,7 @@ Item {
                     model: clipModel
                     currentIndex:-1
                     delegate:Rectangle {
+                        id:delegateRectId
                         width:model.source.duration*root.pixelsPerSecond
                         height:3*pixelsPerSecond/16*9+4
                         color: "transparent"
@@ -193,6 +198,10 @@ Item {
                                 timeThumbnailViewId.currentIndex = index
                                 event.accepted = true
                                 clipInformation(timeThumbnailViewId.currentItem.source)
+
+                                var time = (tapId.point.position.x - 3) / pixelsPerSecond
+                                time = Math.max(0, Math.min(time, totalDuration))
+                                openTimeLineMedia(time)
                             }
                         }
 
@@ -243,7 +252,7 @@ Item {
                     }
                     onXChanged: {
                         if (!_updatingPointer) {
-                            var time = (timePointerId.x - 10) / pixelsPerSecond
+                            var time = (timePointerId.x - 3) / pixelsPerSecond
                             if (time < 0) time = 0
                             if (time > totalDuration) time = totalDuration
                             seekRequested(time)
@@ -314,6 +323,7 @@ Item {
                                 clipModel.append({
                                     "source":videoClip
                                 })
+                                updateClips(videoClip)
                                 updateTotalDuration()
                             }
 
@@ -351,24 +361,30 @@ Item {
             clipModel.append({
                 "source":videoClip
             })
+            updateClips(videoClip)
             updateTotalDuration()
 
         }
     }
 
-    Component.onCompleted: {
+    /*Component.onCompleted: {
         setPointerPosition(0)
-    }
+    }*/
 
     function setPointerPosition(timeSeconds) {
         if (timeSeconds < 0) timeSeconds = 0
         if (timeSeconds > totalDuration) timeSeconds = totalDuration
-        var newX = timeSeconds * pixelsPerSecond + 10
+        var newX = timeSeconds * pixelsPerSecond + 3
         _updatingPointer = true
         timePointerId.x = newX
         _updatingPointer = false
     }
 
+    function updateClips(videoClip){
+        clips.push({source:"file://" + videoClip.source.filePath,start:videoClip.sourceOffset
+                    ,end:videoClip.sourceOffset+videoClip.duration
+                    ,timeLineStart:videoClip.timelineStart});
+    }
 
     function updateTotalDuration() {
         var maxEnd = 0

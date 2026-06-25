@@ -12,6 +12,14 @@ Item {
 
     signal progressChanged(real seconds)
 
+    property var materialModel: null
+
+    property real totalDuration:0
+    property real mediaPosition:0
+
+    property var clips: []
+    property int currClip: 0
+
     Rectangle{
         anchors.fill:parent
         color: Style.v_background
@@ -38,7 +46,67 @@ Item {
                 videoOutput: videoOutput
 
                 onPositionChanged: function(position) {
-                    progressChanged(position / 1000.0)
+                    if(!materialModel)
+                        mediaPosition = position
+                    //progressChanged(position / 1000.0)
+                }
+                onMediaStatusChanged: {
+                    if(mediaStatus == MediaPlayer.LoadedMedia && !materialModel){
+                        totalDuration = mediaPlayer.duration
+                    }
+                }
+
+            }
+
+            MediaPlayer{
+                id:timeLineMediaPlayer
+                source: mediaUrl
+                property bool pendingPlay: false
+                property real pendingPosition: -1
+                audioOutput: AudioOutput {
+                    id: timeLineAudioOutput
+                }
+                videoOutput: VideoOutput {
+                    id: timelineVideoOutput
+                }
+
+                function loadClip(time){
+                    currClip = locationClip(time)
+                    var clip = clips[currClip]
+                    mediaUrl = clip.source
+                    timeLineMediaPlayer.source = clip.source
+                    var offset = (time - clip.timeLineStart) * 1000
+                    var duration = (clip.end - clip.start) * 1000
+                    offset = Math.max(0, Math.min(offset, duration))
+                    pendingPosition = offset
+                    pendingPlay = true
+                }
+
+                onPositionChanged:function(position) {
+                    if (position >= Math.floor((clips[currClip].end - clips[currClip].start) * 1000) && currClip < clips.length - 1){
+                        currClip++;
+                        timeLineMediaPlayer.source =  clips[currClip].source;
+                        timeLineMediaPlayer.position = 0;
+                        timeLineMediaPlayer.play();
+                        playId.isplay = true;
+
+                    }
+                    mediaPosition = clips[currClip].timeLineStart * 1000 + position;
+                    progressChanged(mediaPosition/1000.0);
+                }
+
+                onMediaStatusChanged: {
+                    if (mediaStatus === MediaPlayer.LoadedMedia) {
+                        if (pendingPosition >= 0) {
+                            timeLineMediaPlayer.position = pendingPosition
+                            if (pendingPlay) {
+                                timeLineMediaPlayer.play()
+                                playId.isplay = true
+                            }
+                            pendingPosition = -1
+                            pendingPlay = false
+                        }
+                    }
                 }
 
             }
@@ -63,10 +131,18 @@ Item {
                 onTapped: {
                     if(playId.isplay === true){
                         playId.isplay = false
-                        mediaPlayer.pause()
+                        if(!materialModel){
+                            mediaPlayer.pause()
+                        }else{
+                            timeLineMediaPlayer.pause()
+                        }
                     }else{
                         playId.isplay = true
-                        mediaPlayer.play()
+                        if(!materialModel){
+                            mediaPlayer.play()
+                        }else{
+                            timeLineMediaPlayer.play()
+                        }
                     }
                 }
             }
@@ -81,11 +157,13 @@ Item {
                 id:timeSliderId
                 width: parent.width-150
                 from: 0
-                to:mediaPlayer.duration
-                value: mediaPlayer.position
+                to:totalDuration
+                value: mediaPosition
 
                 onMoved: {
-                    mediaPlayer.position = value
+                    if(!materialModel)
+                        mediaPlayer.position = value
+
                 }
             }
             Row{
@@ -94,7 +172,7 @@ Item {
                 spacing: 5
                 Label{
 
-                    text:formatTime(mediaPlayer.position)
+                    text:formatTime(mediaPosition)
                     font.pixelSize: 13
                     color: Style.textcolor
                 }
@@ -103,7 +181,7 @@ Item {
                     color: Style.textcolor
                 }
                 Label{
-                    text:formatTime(mediaPlayer.duration)
+                    text:formatTime(totalDuration)
                     font.pixelSize: 13
                     color: Style.textcolor
                 }
@@ -164,10 +242,14 @@ Item {
                     onTapped:{
                         if(playId.isplay){
                             playId.isplay = false
-                            mediaPlayer.pause()
+                            if(!materialModel)
+                                mediaPlayer.pause()
+                            timeLineMediaPlayer.pause()
                         }else{
                             playId.isplay = true
-                            mediaPlayer.play()
+                            if(!materialModel)
+                                mediaPlayer.play()
+                            timeLineMediaPlayer.play()
                         }
                     }
                 }
@@ -234,12 +316,14 @@ Item {
                         //anchors.horizontalCenter: parent.horizontalCenter
                         width: 100
                         height: 120
-                        value: mediaPlayer.audioOutput.volume
+                        value: materialModel?timeLineMediaPlayer.audioOutput.volume:mediaPlayer.audioOutput.volume
                         orientation: Qt.Vertical
                         from:0.0
                         to:1.0
                         onValueChanged: {
-                            mediaPlayer.audioOutput.volume =value
+                            if(!materialModel)
+                                mediaPlayer.audioOutput.volume =value
+                            timeLineMediaPlayer.audioOutput.volume = value
                         }
                     }
                     Text{
@@ -258,14 +342,51 @@ Item {
 
     function seekTo(seconds) {
         if (seconds < 0) seconds = 0
-        mediaPlayer.position = seconds * 1000
+        if(!materialModel){
+            mediaPlayer.position = seconds * 1000
+        }else{
+            currClip = locationClip(seconds)
+            if (currClip === undefined || currClip < 0) return
+            var clip = clips[currClip]
+            var offset = (seconds - clip.timeLineStart) * 1000
+            var duration = (clip.end - clip.start) * 1000
+            offset = Math.max(0, Math.min(offset, duration))
+            timeLineMediaPlayer.position = offset
+            mediaPosition = seconds * 1000
+        }
+    }
+
+    function locationClip(time){
+        for(var i=0;i<clips.length;i++){
+            if(clips[i].timeLineStart <=time && time <=clips[i].timeLineStart+clips[i].end-clips[i].start){
+                return i
+            }
+        }
     }
 
     function setMedia(url, type) {
+        materialModel = false
         mediaUrl = url
         mediaType = type
         mediaPlayer.play()
         playId.isplay = true
+        //totalDuration = mediaPlayer.duration
+        //console.log(totalDuration)
+    }
+
+    function setTimeLineMedia(mediaClips,Duration,time){
+        materialModel = true
+        clips = mediaClips
+
+        totalDuration = Duration*1000
+
+        if (timelineVideoOutput.parent !== mediaId) {
+            timelineVideoOutput.parent = mediaId
+            timelineVideoOutput.anchors.fill = mediaId
+            timelineVideoOutput.visible = true
+        }
+        timeLineMediaPlayer.loadClip(time)
+        //seekTo(time)
     }
 
     function formatTime(ms) {
