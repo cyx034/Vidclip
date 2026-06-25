@@ -95,7 +95,7 @@ Item {
             timelineAreaId.setPointerPosition(seconds)
         })
         timelineAreaId.clipInformation.connect(function(clip){
-            parameterPanelId.showClipInfo(clip)
+            parameterPanelId.setClipInfo(clip)
         })
     }
 }

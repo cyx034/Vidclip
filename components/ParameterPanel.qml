@@ -4,6 +4,10 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 Item {
+    id:root
+    property var currentClip: null
+    property real originalDuration: 0
+
     Rectangle{
         anchors.fill: parent
         color: Style.p_background
@@ -21,6 +25,7 @@ Item {
         id:infoItemId
         anchors.fill:parent
         visible:true
+        z:0
 
         // 内部属性（存储显示数据，并设置默认值）
         property string _projectName: "UnnamedProject"
@@ -99,6 +104,7 @@ Item {
         id: labelId
         anchors.fill: parent
         visible:false
+        z:1
 
         // 当前选中的标签索引（0:Video, 1:Audio, 2:Speed）
         property int currentIndex: 0
@@ -138,20 +144,19 @@ Item {
 
         component MSpinBox:SpinBox {
             editable: true
-            implicitWidth: 70
+            implicitWidth: 100
             palette.text:Style.textcolor
             palette.base:Style.m_background
             background:Rectangle {
                 anchors.fill:parent
                 color: Style.background
             }
-            property string prefix: ""
             property string suffix: ""
             property regexp regExp:/^\s*(\d+)\s*$/
             validator: RegularExpressionValidator { regularExpression: regExp }
 
             textFromValue: function(value, locale) {
-                return prefix + Number(value).toLocaleString(locale, 'f', 0) + suffix
+                return Number(value).toLocaleString(locale, 'f', 0) + suffix
             }
 
             valueFromText: function(text, locale) {
@@ -161,20 +166,19 @@ Item {
 
         component MDoubleSpinBox:DoubleSpinBox{
             editable: true
-            implicitWidth: 70
+            implicitWidth: 100
             palette.text:Style.textcolor
             palette.base:Style.m_background
             background:Rectangle {
                 anchors.fill:parent
                 color: Style.background
             }
-            property string prefix: ""
             property string suffix: ""
             property regexp regExp
             validator: RegularExpressionValidator { regularExpression: regExp }
 
             textFromValue: function(value, decimals, locale) {
-                   return prefix + Number(value).toLocaleString(locale, 'f', decimals) + suffix
+                   return Number(value).toLocaleString(locale, 'f', decimals) + suffix
                 }
 
             valueFromText: function(text, locale) {
@@ -195,6 +199,7 @@ Item {
             // 页面1：视频
             Item {
                 id:videoItemId
+                property real duration: 0
                 Text {
                     anchors.centerIn: parent
                     text: "视频编辑内容"
@@ -258,7 +263,7 @@ Item {
                             stepSize: 1
                             value: videoItemId.scale
                             Layout.fillWidth: true
-                            onValueChanged: {
+                            onMoved: {
                                 videoItemId.scale = value
                                 scaleSpinBoxId.value = value
                             }
@@ -272,7 +277,7 @@ Item {
                             value: videoItemId.scale
                             suffix: "%"
                             regExp: videoItemId.numberExtractionRegExp1
-                            onValueChanged: {
+                            onValueModified: {
                                 videoItemId.scale = value
                                 scaleSliderId.value = value
                             }
@@ -293,7 +298,7 @@ Item {
                             to: 500
                             stepSize: 1
                             value:videoItemId.scaleWidth
-                            onValueChanged: {
+                            onMoved: {
                                 videoItemId.scaleWidth = value
                                 scaleWidthSpinBoxId.value = value
                             }
@@ -307,7 +312,7 @@ Item {
                             suffix: "%"
                             value:videoItemId.scaleWidth
                             regExp: videoItemId.numberExtractionRegExp1
-                            onValueChanged: {
+                            onValueModified: {
                                 videoItemId.scaleWidth = value
                                 scaleWidthSliderId.value = value
                             }
@@ -329,7 +334,7 @@ Item {
                             to: 500
                             stepSize: 1
                             value:videoItemId.scaleHeight
-                            onValueChanged: {
+                            onMoved: {
                                 videoItemId.scaleHeight = value
                                 scaleHeightSpinBoxId.value = value
                             }
@@ -343,7 +348,7 @@ Item {
                             suffix: "%"
                             value:videoItemId.scaleHeight
                             regExp: videoItemId.numberExtractionRegExp1
-                            onValueChanged: {
+                            onValueModified: {
                                 videoItemId.scaleHeight = value
                                 scaleHeightSliderId.value = value
                             }
@@ -384,6 +389,12 @@ Item {
                             id: positionXSpinBox
                             from: 0
                             value: videoItemId.positionX
+                            editable: true
+                            implicitWidth: 70
+                            font.pixelSize: 12
+                            onValueModified: {
+                                videoItemId.positionX = value
+                            }
                         }
                         Label {
                             text: "Y:"
@@ -397,7 +408,7 @@ Item {
                             editable: true
                             implicitWidth: 70
                             font.pixelSize: 12
-                            onValueChanged: {
+                            onValueModified: {
                                 videoItemId.positionY = value
                             }
                         }
@@ -419,7 +430,7 @@ Item {
                             suffix: "°"
                             regExp:videoItemId.numberExtractionRegExp2
                             value: videoItemId.rotat
-                            onValueChanged: {
+                            onValueModified: {
                                 videoItemId.rotat = value
                             }
                         }
@@ -436,9 +447,8 @@ Item {
                             id: radiusSpinBox
                             from: 0
                             to: 100
-                            suffix: ""
                             value: videoItemId.radius
-                            onValueChanged: {
+                            onValueModified: {
                                 videoItemId.radius = value
                             }
                         }
@@ -450,7 +460,7 @@ Item {
             Item {
                 id:audioItemId
                 property real volume: 0.0
-                readonly property regexp numberExtractionRegExp3: /\D*?(-?\d*\.?\d+)dB$/
+                readonly property regexp numberExtractionRegExp3: /^\s*(-?\d+\.?\d?)\s*(?:dB)?\s*$/i
                 RowLayout {
                     visible:true
                     spacing: 8
@@ -469,7 +479,7 @@ Item {
                         stepSize: 0.1
                         Layout.fillWidth: true
 
-                        onValueChanged: {
+                        onMoved: {
                             if (audioItemId.volume !== value) {
                                 audioItemId.volume = value
                             }
@@ -485,7 +495,7 @@ Item {
                         value: audioItemId.volume
                         suffix: "dB"
                         regExp: audioItemId.numberExtractionRegExp3
-                        onValueChanged: {
+                        onValueModified: {
                             if (audioItemId.volume !== value) {
                                 audioItemId.volume = value
                             }
@@ -500,53 +510,123 @@ Item {
             Item {
                 id:speedItemId
                 property real speed: 1.00
-                readonly property regexp numberExtractionRegExp: /\D*?(-?\d*\.?\d+)x$/
+                property real duration: 0
+                property real currentDuration: 0
+                property real originalDuration: 0
                 ColumnLayout{
-                    MText {
-                        text: "Mulitiple"
-                    }
-                    RowLayout {
-                        visible:true
-                        spacing: 8
-                        Slider {
-                            id: mulitipleSliderId
-                            from: 0.1
-                            to: 100
-                            value: speedItemId.speed
-                            stepSize: 0.1
+                    anchors.fill:parent
+                    anchors.top:parent.bottom
+                    anchors.topMargin: 15
+                    ColumnLayout{
+                        spacing: 10
+                        Layout.fillWidth: true
+                        MText {
+                            text: "Mulitiple"
+                        }
+                        RowLayout {
                             Layout.fillWidth: true
-                            snapMode:Slider.SnapAlways
+                            visible:true
+                            spacing: 8
+                            Slider {
+                                id: mulitipleSliderId
+                                from: 0.1
+                                to: 100
+                                value: speedItemId.speed
+                                stepSize: 0.1
+                                Layout.fillWidth: true
+                                snapMode:Slider.SnapAlways
 
-                            onValueChanged: {
-                                speedItemId.speed = value
-                                mulitipleSpinBoxId.value= value
+                                onMoved: {
+                                    speedItemId.speed = value
+                                    mulitipleSpinBoxId.value= value
+                                    root.onSpeedChanged(value)
+
+                                }
                             }
-                        }
-
-                        MDoubleSpinBox{
-                            id:mulitipleSpinBoxId
-                            from:0.1
-                            to:100
-                            stepSize:0.1
-                            value: speedItemId.speed
-                            suffix: "x"
-                            regExp: speedItemId.numberExtractionRegExp
-                            onValueChanged: {
-                                speedItemId.speed = value
-                                mulitipleSliderId.value = value
+                            MDoubleSpinBox{
+                                id:mulitipleSpinBoxId
+                                from:0.1
+                                to:100
+                                stepSize:0.1
+                                value: speedItemId.speed
+                                suffix: "x"
+                                regExp:/^\s*(-?\d+\.?\d{0,2})\s*(?:x)?\s*$/i
+                                onValueModified: {
+                                    speedItemId.speed = value
+                                    mulitipleSliderId.value = value
+                                    root.onSpeedChanged(value)
+                                }
                             }
                         }
                     }
-                    MText{
-                        text:"Duration"
+                    ColumnLayout{
+                        spacing: 10
+                        Layout.fillWidth: true
+                        ColumnLayout{
+                            spacing: 10
+                            Layout.fillWidth: true
+                            MText{
+                                text:"Duration"
+                            }
+                            RowLayout{
+                                MText{
+                                    text: speedItemId.originalDuration.toFixed(2) + "s"
+                                }
+                                MDoubleSpinBox{
+                                    id:durationSpinBoxId
+                                    from:speedItemId.originalDuration/100
+                                    to:speedItemId.originalDuration*10
+                                    stepSize:0.1
+                                    value: speedItemId.duration
+                                    suffix: "s"
+                                    regExp: /^\s*(\d+\.?\d*)\s*$/
+                                    onValueModified: {
+                                        var newSpeed = speedItemId.originalDuration / value
+                                        if (newSpeed < 0.1) newSpeed = 0.1
+                                        if (newSpeed > 100) newSpeed = 100
+                                        // 应用速度
+                                        root.onSpeedChanged(newSpeed)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
-
-    function showClipInfo(clip) {
+    function setClipInfo(clip) {
         infoItemId.visible = false
         labelId.visible = true
+    }
+
+    function updateVideoPanel(clip) {
+
+    }
+
+    function onSpeedChanged(newSpeed){
+        if(!currentClip)return
+        var newDuration = originalDuration/newSpeed
+        currentClip.setDuration(newDuration)
+        speedItemId.currentDuration = newDuration
+    }
+
+    function updateAudioPanel(clip) {
+    }
+
+    function updateSpeedPanel(clip) {
+
+        if(!clip)return
+        var currentDuration = clip.duration
+
+        if(originalDuration > 0 ){
+            speedItemId.speed = originalDuration/currentDuration
+        }else{
+            originalDuration = currentDuration
+            speedItemId.speed = 1.0
+        }
+
+        speedItemId.currentDuration = currentDuration
+        speedItemId.originalDuration = originalDuration
     }
 }
