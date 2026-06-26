@@ -10,6 +10,7 @@ Item{
     signal splitRequested()
     signal trimLeftRequested()
     signal trimRightRequested()
+    signal deleteRequested()
 
     property alias _import: _import
     property alias _export: _export
@@ -112,6 +113,9 @@ Item{
         id:_delete
         icon.name:"delete"
         icon.color: Style.textcolor
+        onTriggered: {
+            deleteRequested()
+        }
     }
 
 }

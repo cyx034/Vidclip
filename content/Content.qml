@@ -83,10 +83,37 @@ Item {
         }
     }
 
+    function clearVideoPreview() {
+        videoPreview.materialModel = false
+        videoPreview.mediaUrl = ""
+        videoPreview.mediaType = ""
+        videoPreview.totalDuration = 0
+        videoPreview.clips = []
+        videoPreview.currClip = 0
+        videoPreview._switching = false
+        videoPreview.mediaPosition = 0
+
+        if (videoPreview.timeLineMediaPlayer) {
+            videoPreview.timeLineMediaPlayer.stop()
+            videoPreview.timeLineMediaPlayer.source = ""
+        }
+        if (videoPreview.mediaPlayer) {
+            videoPreview.mediaPlayer.stop()
+            videoPreview.mediaPlayer.source = ""
+        }
+
+        if (videoPreview.timelineVideoOutput) {
+            videoPreview.timelineVideoOutput.visible = false
+        }
+    }
+
     Component.onCompleted: {
         timelineAreaId.openTimeLineMedia.connect(function(time){
-            if(!videoPreview.materialModel)
-                videoPreview.setTimeLineMedia(timelineAreaId.clips,timelineAreaId.totalDuration,time)
+            if (timelineAreaId.clips && timelineAreaId.clips.length > 0) {
+               videoPreview.setTimeLineMedia(timelineAreaId.clips, timelineAreaId.totalDuration, time)
+            }else {
+               clearVideoPreview()
+            }
         })
 
         timelineAreaId.seekRequested.connect(function(time) {
@@ -137,6 +164,16 @@ Item {
         })
         Actions.trimLeftRequested.connect(function() {
             timelineAreaId.trimLeftCurrent()
+        })
+        Actions.deleteRequested.connect(function(){
+            timelineAreaId.deleteSelectedClip()
+        })
+        timelineAreaId.timelineDataUpdated.connect(function(updatedClips, duration, seekTime) {
+            if (updatedClips && updatedClips.length > 0) {
+                videoPreview.setTimeLineMedia(updatedClips, duration, seekTime)
+            } else {
+                clearVideoPreview()
+            }
         })
     }
 }

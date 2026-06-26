@@ -25,6 +25,7 @@ Item {
 
     signal updateDuration(real totalDuration)
     signal updateVideoPreview()
+    signal timelineDataUpdated(var updatedClips, real duration, real seekTime)
 
     Rectangle{
         anchors.fill:parent
@@ -552,5 +553,71 @@ Item {
         }
         updateTotalDuration()
     }
+
+
+    function deleteSelectedClip() {
+        var index = timeThumbnailViewId.currentIndex
+        if (index < 0 || index >= clipModel.count) {
+            console.warn("请先在时间轴上点击选中一个剪辑")
+            return
+        }
+
+        var deletedClip = clipModel.get(index).source
+        var deletedDuration = deletedClip.duration
+
+        clipModel.remove(index)
+
+        if (index >= 0 && index < clips.length) {
+            clips.splice(index, 1)
+        }
+
+        for (var i = index; i < clipModel.count; i++) {
+            var nextClip = clipModel.get(i).source
+            if (!nextClip) continue
+
+            nextClip.timelineStart = nextClip.timelineStart - deletedDuration
+            if (nextClip.timelineStart < 0) nextClip.timelineStart = 0
+
+            if (i < clips.length && clips[i]) {
+                clips[i].timeLineStart = nextClip.timelineStart
+                clips[i].start = nextClip.sourceOffset
+                clips[i].end = nextClip.sourceOffset + nextClip.duration
+            }
+        }
+
+        updateTotalDuration()
+        timeThumbnailViewId.currentIndex = -1
+
+        var newTime = 0
+
+        if (clipModel.count === 0) {
+            timelineDataUpdated([], 0, 0)
+            setPointerPosition(0)
+            seekRequested(0)
+            return
+        }
+
+        if (index > 0 && (index - 1) < clipModel.count) {
+            var preClip = clipModel.get(index - 1).source
+            if (preClip) {
+                newTime = preClip.timelineStart + preClip.duration
+            } else {
+                newTime = 0
+            }
+        } else {
+            var firstClip = clipModel.get(0).source
+            if (firstClip) {
+                newTime = firstClip.timelineStart
+            } else {
+                newTime = 0
+            }
+        }
+
+        timelineDataUpdated(clips, totalDuration, newTime)
+
+        setPointerPosition(newTime)
+        seekRequested(newTime)
+    }
+
 }
 
