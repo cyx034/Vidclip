@@ -81,7 +81,8 @@ void VideoClip::trimLeft(double delta)
     if (newDuration < 0.01) return;
     setSourceOffset(newOffset);
     setDuration(newDuration);
-    setTimelineStart(m_timelineStart + delta);
+    setTimelineStart(m_timelineStart);
+    extractPreview();
 }
 
 void VideoClip::trimRight(double delta)
@@ -90,6 +91,7 @@ void VideoClip::trimRight(double delta)
     double newDuration = m_duration - delta;
     if (newDuration < 0.01) return;
     setDuration(newDuration);
+    extractPreview();
 }
 
 void VideoClip::move(double newTimelineStart)
@@ -120,4 +122,5 @@ void VideoClip::extractPreview()
     int mClip = m_source->urls().size() / scale;
     int mStartScale = m_source->urls().size() / startScale;
     m_urls = m_source->urls().mid(mStartScale, mClip);
+    emit urlsChanged();
 }

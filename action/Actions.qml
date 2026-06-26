@@ -5,6 +5,8 @@ import style
 
 Item{
     signal importRequested()
+    signal trimLeftRequested()
+    signal trimRightRequested()
 
     property alias _import: _import
     property alias _export: _export
@@ -89,12 +91,18 @@ Item{
         id:trim_left
         icon.source: "qrc:/image/trim-left.svg"
         icon.color: Style.textcolor
+        onTriggered: {
+            trimLeftRequested()
+        }
     }
 
     Action{
         id:trim_right
         icon.source: "qrc:/image/trim-right.svg"
         icon.color: Style.textcolor
+        onTriggered: {
+            trimRightRequested()
+        }
     }
 
     Action{

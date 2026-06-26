@@ -6,7 +6,20 @@ import QtQuick.Layouts
 Item {
     id:root
     property var currentClip: null
-    property real originalDuration: 0
+    property real totalDuration: 0
+
+    signal scaleChange(real scale)
+    signal positionXChange(real positionX)
+    signal positionYChange(real positionY)
+    signal scaleWidthChange(real scaleWidth)
+    signal scaleHeightChange(real scaleHeight)
+    signal rotatChange(real rotat)
+    signal volumeChange(real volume)
+    signal speedChange(real speed)
+
+    onTotalDurationChanged: {
+        durationId.text = infoItemId.formatTime(totalDuration*1000)
+    }
 
     Rectangle{
         anchors.fill: parent
@@ -27,13 +40,12 @@ Item {
         visible:true
         z:0
 
-        // 内部属性（存储显示数据，并设置默认值）
         property string _projectName: "UnnamedProject"
         property string _projectFileLocation: "/"
         property string _ratio:"adapt"
         property string _resolution: "adapt"
         property string _frameRate: "25fps"
-        property string _duration: "00:00:00:00"
+        property string _duration: formatTime(totalDuration)
 
         Text {
             id:titleTextId
@@ -58,6 +70,7 @@ Item {
         }
 
         GridLayout {
+            id:gridLayoutId
             anchors.top: rectId.bottom
             anchors.topMargin: 6
             anchors.left: parent.left
@@ -84,18 +97,17 @@ Item {
             MText { text: infoItemId._frameRate;}
 
             MText { text: "Duration: ";}
-            MText { text: infoItemId._duration;}
+            MText { id:durationId ;text: infoItemId._duration;}
         }
 
-        // 更新函数
-        function updateInfo(info) {
-            if (info.projectName !== undefined) _projectName = info.projectName
-            if (info.projectFileLocation !== undefined) _projectFileLocation = info.projectFileLocation
-            if (info.resolution !== undefined) _resolution = info.resolution
-            if (info.frameRate !== undefined) _frameRate = info.frameRate
-            if (info.colorSpace !== undefined) _colorSpace = info.colorSpace
-            if (info.sampleRate !== undefined) _sampleRate = info.sampleRate
-            if (info.duration !== undefined) _duration = info.duration
+        function formatTime(ms) {
+            if (ms <= 0) return "00:00:00"
+            let total = Math.floor(ms / 1000)
+            let h = Math.floor(total / 3600)
+            let m = Math.floor((total % 3600) / 60)
+            let s = total % 60
+            let pad = (n) => n.toString().padStart(2, "0")
+            return `${pad(h)}:${pad(m)}:${pad(s)}`
         }
     }
 
@@ -144,7 +156,7 @@ Item {
 
         component MSpinBox:SpinBox {
             editable: true
-            implicitWidth: 100
+            implicitWidth: 75
             palette.text:Style.textcolor
             palette.base:Style.m_background
             background:Rectangle {
@@ -166,7 +178,7 @@ Item {
 
         component MDoubleSpinBox:DoubleSpinBox{
             editable: true
-            implicitWidth: 100
+            implicitWidth: 75
             palette.text:Style.textcolor
             palette.base:Style.m_background
             background:Rectangle {
@@ -219,6 +231,26 @@ Item {
 
                 implicitWidth: parent.width-5
                 implicitHeight: columnLayout.implicitHeight + 24
+
+                onScaleChanged: {
+                    scaleChange(scale)
+                }
+                onPositionXChanged: {
+                    positionXChange(positionX)
+                }
+                onPositionYChanged: {
+                    positionYChange(positionY)
+                }
+                onScaleWidthChanged: {
+                    scaleWidthChange(scaleWidth)
+                }
+                onScaleHeightChanged: {
+                    scaleHeightChange(scaleHeight)
+                }
+                onRotatChanged: {
+                    rotatChange(rotat)
+                }
+
 
                 Rectangle {
                     anchors.fill: parent
@@ -435,24 +467,6 @@ Item {
                             }
                         }
                     }
-
-                    RowLayout {
-                        spacing: 20
-                        Label {
-                            text: qsTr("圆角")
-                            font.pixelSize: 14
-                            color: Style.textcolor
-                        }
-                        MSpinBox {
-                            id: radiusSpinBox
-                            from: 0
-                            to: 100
-                            value: videoItemId.radius
-                            onValueModified: {
-                                videoItemId.radius = value
-                            }
-                        }
-                    }
                 }
             }
 
@@ -461,6 +475,13 @@ Item {
                 id:audioItemId
                 property real volume: 0.0
                 readonly property regexp numberExtractionRegExp3: /^\s*(-?\d+\.?\d?)\s*(?:dB)?\s*$/i
+
+                onVolumeChanged: {
+                    volumeChange(volume)
+                }
+
+
+
                 RowLayout {
                     visible:true
                     spacing: 8
@@ -510,9 +531,8 @@ Item {
             Item {
                 id:speedItemId
                 property real speed: 1.00
-                property real duration: 0
-                property real currentDuration: 0
-                property real originalDuration: 0
+                property real duration: totalDuration
+                property real originalDuration: totalDuration
                 ColumnLayout{
                     anchors.fill:parent
                     anchors.top:parent.bottom
@@ -530,7 +550,7 @@ Item {
                             Slider {
                                 id: mulitipleSliderId
                                 from: 0.1
-                                to: 100
+                                to: 10
                                 value: speedItemId.speed
                                 stepSize: 0.1
                                 Layout.fillWidth: true
@@ -539,7 +559,7 @@ Item {
                                 onMoved: {
                                     speedItemId.speed = value
                                     mulitipleSpinBoxId.value= value
-                                    root.onSpeedChanged(value)
+
 
                                 }
                             }
@@ -554,7 +574,7 @@ Item {
                                 onValueModified: {
                                     speedItemId.speed = value
                                     mulitipleSliderId.value = value
-                                    root.onSpeedChanged(value)
+
                                 }
                             }
                         }
@@ -584,49 +604,29 @@ Item {
                                         var newSpeed = speedItemId.originalDuration / value
                                         if (newSpeed < 0.1) newSpeed = 0.1
                                         if (newSpeed > 100) newSpeed = 100
-                                        // 应用速度
-                                        root.onSpeedChanged(newSpeed)
                                     }
                                 }
                             }
                         }
                     }
                 }
+                onSpeedChanged: {
+                    if(!currentClip)return
+                    var newDuration = totalDuration/speed
+                    speedItemId.duration = newDuration
+                    speedChange(speed)
+                }
             }
+
+
+
         }
     }
     function setClipInfo(clip) {
         infoItemId.visible = false
         labelId.visible = true
+        currentClip = clip
+        totalDuration = clip.duration
     }
 
-    function updateVideoPanel(clip) {
-
-    }
-
-    function onSpeedChanged(newSpeed){
-        if(!currentClip)return
-        var newDuration = originalDuration/newSpeed
-        currentClip.setDuration(newDuration)
-        speedItemId.currentDuration = newDuration
-    }
-
-    function updateAudioPanel(clip) {
-    }
-
-    function updateSpeedPanel(clip) {
-
-        if(!clip)return
-        var currentDuration = clip.duration
-
-        if(originalDuration > 0 ){
-            speedItemId.speed = originalDuration/currentDuration
-        }else{
-            originalDuration = currentDuration
-            speedItemId.speed = 1.0
-        }
-
-        speedItemId.currentDuration = currentDuration
-        speedItemId.originalDuration = originalDuration
-    }
 }

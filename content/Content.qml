@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../components"
+import action
 
 Item {
     id:centralId
@@ -96,6 +97,40 @@ Item {
         })
         timelineAreaId.clipInformation.connect(function(clip){
             parameterPanelId.setClipInfo(clip)
+        })
+
+        parameterPanelId.scaleChange.connect(function(scale){
+            videoPreview.zoom = scale/100
+        })
+        parameterPanelId.positionXChange.connect(function(x){
+            videoPreview.offsetX = x
+        })
+        parameterPanelId.positionYChange.connect(function(y){
+            videoPreview.offsetY = y
+        })
+        parameterPanelId.scaleWidthChange.connect(function(scaleX){
+            videoPreview.zoomX = scaleX
+        })
+        parameterPanelId.scaleHeightChange.connect(function(scaleY){
+            videoPreview.zoomY = scaleY
+        })
+        parameterPanelId.rotatChange.connect(function(scale){
+            videoPreview.rotat = scale
+        })
+        parameterPanelId.volumeChange.connect(function(volume){
+            videoPreview.mvolume = volume
+        })
+        parameterPanelId.speedChange.connect(function(speed){
+            videoPreview.speed = speed
+        })
+
+        timelineAreaId.updateDuration.connect(function(duration){
+            console.log(duration)
+            parameterPanelId.totalDuration = duration
+        })
+
+        Actions.trimLeftRequested.connect(function() {
+            timelineAreaId.trimLeftCurrent()
         })
     }
 }

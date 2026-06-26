@@ -23,6 +23,9 @@ Item {
     property var clips: []
     signal openTimeLineMedia(real time)
 
+    signal updateDuration(real totalDuration)
+    signal updateVideoPreview()
+
     Rectangle{
         anchors.fill:parent
         color: Style.t_background
@@ -76,17 +79,19 @@ Item {
                 action: Actions._split
             }
             MToolButton{
-                id:trim_rightButton
-                action: Actions.trim_right
-            }
-            MToolButton{
                 id:trim_leftButton
                 action: Actions.trim_left
             }
             MToolButton{
+                id:trim_rightButton
+                action: Actions.trim_right
+            }
+            MToolButton{
                 id:deleteButton
                 action: Actions._delete
+
             }
+
         }
         Button {
             anchors.right: parent.right
@@ -197,7 +202,7 @@ Item {
                             onTapped: (event)=> {
                                 timeThumbnailViewId.currentIndex = index
                                 event.accepted = true
-                                clipInformation(timeThumbnailViewId.currentItem.source)
+                                clipInformation(model.source)
 
                                 var time = (tapId.point.position.x - 3) / pixelsPerSecond
                                 time = Math.max(0, Math.min(time, totalDuration))
@@ -394,6 +399,7 @@ Item {
             if (end > maxEnd) maxEnd = end
         }
         totalDuration = maxEnd
+        updateDuration(totalDuration)
     }
 
     function timeLinePreview(mediaSource){
@@ -425,6 +431,47 @@ Item {
             mediaSource.urls = "qrc:/image/music.png"
             mediaReady(mediaSource)
         }
+    }
+
+    function trimLeftCurrent() {
+        var idx = timeThumbnailViewId.currentIndex
+        if (idx < 0 || idx >= clipModel.count) {
+            console.warn("没有选中剪辑")
+            return
+        }
+
+        var clip = clipModel.get(idx).source
+        if (!clip) {
+            console.warn("无效剪辑对象")
+            return
+        }
+
+        var currentTime = (timePointerId.x - 3) / pixelsPerSecond  //指针位置
+        var delta = currentTime - clip.timelineStart
+
+        clip.trimLeft(delta)
+
+        for (var i = 0; i < clips.length; ++i) {
+            if (Math.abs(clips[i].timeLineStart - clip.timelineStart) < 0.001) {
+                clips[i].start = clip.sourceOffset
+                clips[i].end = clip.sourceOffset + clip.duration
+                clips[i].timeLineStart = clip.timelineStart
+                break
+            }
+        }
+
+        for (var j = idx + 1; j < clipModel.count; ++j) {
+           var nextClip = clipModel.get(j).source
+           if (!nextClip) continue
+           nextClip.timelineStart = nextClip.timelineStart - delta
+           for (var k = 0; k < clips.length; ++k) {
+               if (Math.abs(clips[k].timeLineStart - (nextClip.timelineStart + delta)) < 0.001) {
+                   clips[k].timeLineStart = nextClip.timelineStart
+                   break
+               }
+           }
+        }
+        updateTotalDuration()
     }
 
 }
