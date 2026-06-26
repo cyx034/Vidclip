@@ -49,9 +49,10 @@ qt_add_qml_module(appVidclip
     SOURCES backend/mediasource.h backend/mediasource.cpp
     SOURCES backend/videoclip.h backend/videoclip.cpp
     RESOURCES readme
-    QML_FILES components/Dialogs.qml
+    QML_FILES
     QML_FILES components/ParameterPanel.qml
     RESOURCES
+    QML_FILES components/Dialogs.qml
 
 )
 

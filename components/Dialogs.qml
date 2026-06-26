@@ -15,9 +15,11 @@ Item{
         width: 300
         height: 150
         anchors.centerIn: parent
+        padding: 0
         background: Rectangle {
             color: Style.background
         }
+
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 20
@@ -28,6 +30,29 @@ Item{
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
             }
+        }
+
+        Button {
+            text: "×"
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 5
+            width: 24
+            height: 24
+            font.pixelSize: 16
+            font.bold: true
+            z: 10   // 确保在最上层
+            background: Rectangle {
+                color: parent.hovered ? Style.highlight : Style.d_button
+                radius: 4
+            }
+            contentItem: Text {
+                text: parent.text
+                color: Style.textcolor
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+            onClicked: noExportDialog.close()
         }
     }
 
@@ -178,7 +203,10 @@ Item{
                     MButton {
                         text: "Edit cover"  //编辑封面
                         Layout.alignment: Qt.AlignHCenter
-                        onClicked: coverSelector.open()
+                        onClicked: {
+                            exportDialog.visible = false
+                            coverSelectorId.open()
+                        }
                     }
                 }
 
@@ -409,64 +437,6 @@ Item{
             }
         }
 
-        //子对话框
-        Dialog {
-            id: coverSelector
-            title: "Select Cover"   //选择封面
-            modal: true
-            width: 400
-            height: 300
-            standardButtons: Dialog.Ok | Dialog.Cancel
-
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: 15
-                anchors.margins: 15
-
-                MButton {
-                    text: "Import From The Local Area"   //从本地导入
-                    Layout.fillWidth: true
-                    onClicked: imageDialog.open()
-                }
-
-                MButton {
-                    text: "From The Video Clip"   //从视频截取
-                    Layout.fillWidth: true
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 120
-                    border.color: Style.border
-                    border.width: 1
-                    color: Style.surface
-
-                    Image {
-                        id: coverPreviewSmall
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        fillMode: Image.PreserveAspectFit
-                        source: exportDialog.coverPath
-                    }
-                }
-            }
-        }
-
-        FileDialog {
-            id: imageDialog
-            title: "Select The Cover Image"   //选择封面图片
-            fileMode: FileDialog.OpenFile
-            nameFilters: ["图片文件 (*.jpg *.png *.jpeg)", "所有文件 (*)"]
-
-            onAccepted: {
-                if (selectedFile) {
-                    coverPath = selectedFile.toString()
-                    coverPreview.source = coverPath
-                    coverPreviewSmall.source = coverPath
-                }
-            }
-        }
-
         FileDialog {
             id: folderDialog
             title: "Select The Storage Location"   //选择保存位置
@@ -478,6 +448,7 @@ Item{
                 }
             }
         }
+
 
         //确认逻辑
         onAccepted: {
@@ -497,12 +468,156 @@ Item{
         }
     }
 
+    //子对话框
+    Dialog {
+        id: coverSelectorId
+        title: ""
+        modal: true
+        width: 400
+        height: 300
+        anchors.centerIn: parent
+        background: Rectangle {
+            color: Style.background
+            border.color:Style.border
+        }
 
+        header: Rectangle {
+            height: 40
+            color: Style.surface
+            Text {
+                text: "SelectCover"
+                color: Style.textcolor
+                anchors.centerIn: parent
+                font.pixelSize: 14
+                font.bold: true
+            }
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 15
+            anchors.margins: 15
+
+            // 封面预览
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 120
+                border.color: Style.border
+                border.width: 1
+                color: Style.surface
+
+                Image {
+                    id: coverPreviewSmall
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    fillMode: Image.PreserveAspectFit
+                    source: exportDialog.coverPath
+                }
+            }
+
+            // 导入按钮
+            Button {
+                text: "Import From The Local Area"
+                Layout.fillWidth: true
+                onClicked: coverImageId.open()
+                background: Rectangle {
+                    color: parent.hovered ? Style.highlight : Style.d_button
+                    border.color: Style.border
+                    border.width: 1
+                    radius: 4
+                }
+                contentItem: Text {
+                    text: parent.text
+                    color: Style.textcolor
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
+            Button {
+                text: "From The Video Clip"
+                Layout.fillWidth: true
+                background: Rectangle {
+                    color: parent.hovered ? Style.highlight : Style.d_button
+                    border.color: Style.border
+                    border.width: 1
+                    radius: 4
+                }
+                contentItem: Text {
+                    text: parent.text
+                    color: Style.textcolor
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
+            // 右下角按钮行
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignRight
+                spacing: 10
+
+                Button {
+                    text: "Cancel"
+                    onClicked: coverSelectorId.reject()
+                    background: Rectangle {
+                        color: parent.hovered ? Style.highlight : Style.d_button
+                        border.color: Style.border
+                        border.width: 1
+                        radius: 4
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: Style.textcolor
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+                Button {
+                    text: "OK"
+                    onClicked: coverSelectorId.accept()
+                    background: Rectangle {
+                        color: parent.hovered ? Style.highlight : Style.d_button
+                        border.color: Style.border
+                        border.width: 1
+                        radius: 4
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: Style.textcolor
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+            }
+        }
+
+        onAccepted: {
+            exportDialog.visible = true
+        }
+        onRejected: {
+            exportDialog.visible = true
+        }
+
+        FileDialog {
+            id: coverImageId
+            title: "Select The Cover Image"   //选择封面图片
+            fileMode: FileDialog.OpenFile
+            nameFilters: ["图片文件 (*.jpg *.png *.jpeg)", "所有文件 (*)"]
+
+            onAccepted: {
+                if (selectedFile) {
+                    coverPath = selectedFile.toString()
+                    coverPreview.source = coverPath
+                    coverPreviewSmall.source = coverPath
+                }
+            }
+        }
+    }
 
     Dialog {
         id: aboutDialog
         modal: true
-        //standardButtons: Dialog.Ok
         width: 500
         height: 380
         anchors.centerIn: parent

@@ -129,6 +129,12 @@ Item {
             parameterPanelId.totalDuration = duration
         })
 
+        Actions.splitRequested.connect(function(){
+            timelineAreaId.splitClip()
+        })
+        Actions.trimRightRequested.connect(function() {
+           timelineAreaId.trimRightCurrent()
+        })
         Actions.trimLeftRequested.connect(function() {
             timelineAreaId.trimLeftCurrent()
         })

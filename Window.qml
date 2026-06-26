@@ -119,6 +119,57 @@ ApplicationWindow {
         id:contentItem
     }
 
+    //全局右键菜单
+    Menu {
+        id: globalRightMenu
+
+        MMenuItem {
+            contentItem: Text { text:"Import"; color: Style.textcolor }
+            onTriggered: {
+                if (contentItem && contentItem.materialBin) {
+                    contentItem.materialBin.medioDialogId.open()
+                }
+            }
+        }
+        MMenuItem {
+            contentItem: Text{text: "Export"; color:Style.textcolor}
+            onTriggered: {
+                Actions._export.trigger()
+            }
+        }
+        MMenuItem {
+            contentItem: Text{text: "Language"; color:Style.textcolor}
+            onTriggered: {
+
+            }
+        }
+        MMenuItem {
+            contentItem: Text{text: "About"; color:Style.textcolor}
+            onTriggered: {
+                dialogs._aboutDialog.open()
+            }
+        }
+        MMenuItem {
+            contentItem: Text{text: "Quit"; color:Style.textcolor}
+            onTriggered: {
+                Qt.quit()
+            }
+        }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        color: "transparent"
+
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: function(eventPoint) {
+                globalRightMenu.popup()
+                eventPoint.accepted = false
+            }
+        }
+    }
+
     // 信号连接
     Component.onCompleted: {
         Actions.aboutRequested.connect(function() {

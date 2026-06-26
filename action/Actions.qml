@@ -5,6 +5,9 @@ import style
 
 Item{
     signal importRequested()
+    signal aboutRequested()
+    signal exportRequested()
+    signal splitRequested()
     signal trimLeftRequested()
     signal trimRightRequested()
 
@@ -20,9 +23,6 @@ Item{
     property alias trim_left:trim_left
     property alias trim_right: trim_right
     property alias _delete: _delete
-
-    signal aboutRequested()  //about信号
-    signal exportRequested()  //export信号
 
     Action {
         id:_import
@@ -85,6 +85,9 @@ Item{
         id:_split
         icon.source:"qrc:/image/split.svg"
         icon.color: Style.textcolor
+        onTriggered: {
+            splitRequested()
+        }
     }
 
     Action{

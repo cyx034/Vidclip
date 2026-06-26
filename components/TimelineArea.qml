@@ -433,6 +433,44 @@ Item {
         }
     }
 
+    function splitClip() {
+        let index = timeThumbnailViewId.currentIndex
+        if (index < 0 || index >= clipModel.count) {
+            console.warn("没有选中剪辑")
+            return
+        }
+
+        let clip = clipModel.get(index).source
+        if (!clip) {
+            console.warn("无效剪辑对象")
+            return
+        }
+
+        let currentTime = (timePointerId.x - 3) / pixelsPerSecond
+        let duration = currentTime - clip.timelineStart
+
+        //创建左片段
+        let left = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
+        left.source = clip.source
+        left.sourceOffset = clip.sourceOffset
+        left.duration = duration
+        left.timelineStart = clip.timelineStart
+        //left.extractPreview()
+
+        //创建右片段
+        var right = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
+        right.source = clip.source
+        right.sourceOffset = clip.sourceOffset + duration
+        right.duration = clip.duration - duration
+        right.timelineStart = clip.timelineStart + duration
+        //right.extractPreview()
+
+        clipModel.remove(index)
+        clipModel.insert(index, { "source": left })
+        clipModel.insert(index + 1, { "source": right })
+        setPointerPosition(currentTime)
+    }
+
     function trimLeftCurrent() {
         var idx = timeThumbnailViewId.currentIndex
         if (idx < 0 || idx >= clipModel.count) {
@@ -474,5 +512,45 @@ Item {
         updateTotalDuration()
     }
 
+    function trimRightCurrent(){
+        var idx = timeThumbnailViewId.currentIndex
+        if (idx < 0 || idx >= clipModel.count) {
+            console.warn("没有选中剪辑")
+            return
+        }
+
+        var clip = clipModel.get(idx).source
+        if (!clip) {
+            console.warn("无效剪辑对象")
+            return
+        }
+
+        var currentTime = (timePointerId.x - 3) / pixelsPerSecond  //指针位置
+        var delta = clip.timelineStart + clip.duration - currentTime
+
+        clip.trimRight(delta)
+
+        for (var i = 0; i < clips.length; ++i) {
+            if (Math.abs(clips[i].timeLineStart - clip.timelineStart) < 0.001) {
+                clips[i].start = clip.sourceOffset
+                clips[i].end = clip.sourceOffset + clip.duration
+                clips[i].timeLineStart = clip.timelineStart
+                break
+            }
+        }
+
+        for (var j = idx + 1; j < clipModel.count; ++j) {
+           var nextClip = clipModel.get(j).source
+           if (!nextClip) continue
+           nextClip.timelineStart = nextClip.timelineStart - delta
+           for (var k = 0; k < clips.length; ++k) {
+               if (Math.abs(clips[k].timeLineStart - (nextClip.timelineStart + delta)) < 0.001) {
+                   clips[k].timeLineStart = nextClip.timelineStart
+                   break
+               }
+           }
+        }
+        updateTotalDuration()
+    }
 }
 
