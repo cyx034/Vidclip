@@ -122,5 +122,6 @@ void VideoClip::extractPreview()
     int mClip = m_source->urls().size() / scale;
     int mStartScale = m_source->urls().size() / startScale;
     m_urls = m_source->urls().mid(mStartScale, mClip);
+    qDebug() << m_source->filePath() << " " << m_source->urls().size() << " " << m_urls.size();
     emit urlsChanged();
 }

@@ -110,7 +110,7 @@ Item {
     Component.onCompleted: {
         timelineAreaId.openTimeLineMedia.connect(function(time){
             if (timelineAreaId.clips && timelineAreaId.clips.length > 0) {
-               videoPreview.setTimeLineMedia(timelineAreaId.clips, timelineAreaId.totalDuration, time)
+               videoPreview.setTimeLineMedia(timelineAreaId.clips, timelineAreaId.totalDuration, time,false)
             }else {
                clearVideoPreview()
             }
@@ -120,6 +120,7 @@ Item {
             videoPreview.seekTo(time)
         })
         videoPreview.progressChanged.connect(function(seconds) {
+            //console.log("qqqqqqqqqqqqqqq" + seconds)
             timelineAreaId.setPointerPosition(seconds)
         })
         timelineAreaId.clipInformation.connect(function(clip){
@@ -170,10 +171,15 @@ Item {
         })
         timelineAreaId.timelineDataUpdated.connect(function(updatedClips, duration, seekTime) {
             if (updatedClips && updatedClips.length > 0) {
-                videoPreview.setTimeLineMedia(updatedClips, duration, seekTime)
+                console.log("ok" + updatedClips[0].end)
+                videoPreview.setTimeLineMedia(updatedClips, duration, seekTime,false)
             } else {
                 clearVideoPreview()
             }
+        })
+
+        timelineAreaId.seekPause.connect(function(){
+            videoPreview.videoPause()
         })
     }
 }

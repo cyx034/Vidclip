@@ -27,6 +27,8 @@ Item {
     signal updateVideoPreview()
     signal timelineDataUpdated(var updatedClips, real duration, real seekTime)
 
+    signal seekPause()
+
     Rectangle{
         anchors.fill:parent
         color: Style.t_background
@@ -205,9 +207,15 @@ Item {
                                 event.accepted = true
                                 clipInformation(model.source)
 
-                                var time = (tapId.point.position.x - 3) / pixelsPerSecond
+                                let time = (tapId.point.position.x - 3) / pixelsPerSecond
                                 time = Math.max(0, Math.min(time, totalDuration))
+                                console.log("open" + time)
+
+                                seekPause()
                                 openTimeLineMedia(time)
+                                setPointerPosition(time)
+                                seekRequested(time)
+
                             }
                         }
 
@@ -258,26 +266,26 @@ Item {
                     }
                     onXChanged: {
                         if (!_updatingPointer) {
-                            var time = (timePointerId.x - 3) / pixelsPerSecond
+                            let time = (timePointerId.x - 3) / pixelsPerSecond
                             if (time < 0) time = 0
                             if (time > totalDuration) time = totalDuration
                             seekRequested(time)
                         }
 
-                        var flickable = scrollView.contentItem
+                        let flickable = scrollView.contentItem
                         if (!flickable) return
-                        var viewWidth = scrollView.width
+                        let viewWidth = scrollView.width
                         if (viewWidth <= 0) return
 
-                        var margin = 30
-                        var leftBound = flickable.contentX + margin
-                        var rightBound = flickable.contentX + viewWidth - margin
+                        let margin = 30
+                        let leftBound = flickable.contentX + margin
+                        let rightBound = flickable.contentX + viewWidth - margin
 
-                        var newContentX = flickable.contentX
+                        let newContentX = flickable.contentX
                         if (x < leftBound) {
                             newContentX = Math.max(0, x - margin)
                         } else if (x > rightBound) {
-                            var maxContentX = flickable.contentWidth - viewWidth
+                            let maxContentX = flickable.contentWidth - viewWidth
                             newContentX = Math.min(maxContentX, x - viewWidth + margin)
                         }
                         if (newContentX !== flickable.contentX) {
@@ -293,16 +301,16 @@ Item {
                     anchors.fill: parent
                     onDropped: function(drag) {
                         if (drag.hasUrls) {
-                            var url = drag.urls[0]
+                            let url = drag.urls[0]
                             console.log("时间轴接收到拖拽文件:", url)
-                            var filePath = url.toString()
+                            let filePath = url.toString()
                             if (filePath.startsWith("file://")){
                                 filePath = filePath.substring(7)
                             }
-                            var mediaSource = null
+                            let mediaSource = null
                             if (materialModel) {
-                                for (var i = 0; i < materialModel.count; ++i) {
-                                    var item = materialModel.get(i)
+                                for (let i = 0; i < materialModel.count; ++i) {
+                                    let item = materialModel.get(i)
                                     if (item.source && item.source.filePath === filePath) {
                                         mediaSource = item.source
                                         break
@@ -321,8 +329,8 @@ Item {
 
                                 console.log(mediaSource.m_urls)
 
-                                var helper = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
-                                var videoClip = helper.fromMediaSource(mediaSource)
+                                let helper = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
+                                let videoClip = helper.fromMediaSource(mediaSource)
                                 helper.destroy()
 
                                 videoClip.timelineStart = totalDuration
@@ -342,10 +350,10 @@ Item {
 
             TapHandler{
                 onTapped:(eventPoint)=> {
-
-                    var pos = eventPoint.position
+                    //console.log("hhhhhhhhhhhh" + eventPoint.position)
+                    let pos = eventPoint.position
                     timePointerId.x = pos.x
-                    var posInListView = pos
+                    let posInListView = pos
                     if (pos.y > videoLineId.y && pos.y<videoLineId.y+timeThumbnailViewId.height) {
                         return
                     }
@@ -359,8 +367,8 @@ Item {
     Connections{
         target: root
         function onMediaReady(mediaSource){
-            var helper = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
-            var videoClip = helper.fromMediaSource(mediaSource)
+            let helper = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
+            let videoClip = helper.fromMediaSource(mediaSource)
             helper.destroy()
 
             videoClip.timelineStart = totalDuration
@@ -378,9 +386,10 @@ Item {
     }*/
 
     function setPointerPosition(timeSeconds) {
+        //console.log("ooooooooooooo" + timeSeconds)
         if (timeSeconds < 0) timeSeconds = 0
         if (timeSeconds > totalDuration) timeSeconds = totalDuration
-        var newX = timeSeconds * pixelsPerSecond + 3
+        let newX = timeSeconds * pixelsPerSecond + 3
         _updatingPointer = true
         timePointerId.x = newX
         _updatingPointer = false
@@ -393,10 +402,10 @@ Item {
     }
 
     function updateTotalDuration() {
-        var maxEnd = 0
-        for (var i = 0; i < clipModel.count; ++i) {
-            var c = clipModel.get(i).source
-            var end = c.timelineStart + c.duration
+        let maxEnd = 0
+        for (let i = 0; i < clipModel.count; ++i) {
+            let c = clipModel.get(i).source
+            let end = c.timelineStart + c.duration
             if (end > maxEnd) maxEnd = end
         }
         totalDuration = maxEnd
@@ -404,7 +413,7 @@ Item {
     }
 
     function timeLinePreview(mediaSource){
-        var totalImage = parseInt(mediaSource.duration / 3);
+        let totalImage = parseInt(mediaSource.duration / 3);
         if (mediaSource.fileType === "video") {
 
             let thumbnailer = Qt.createQmlObject('import Vidclip 1.0; VideoThumbnailer {}', root)
@@ -456,41 +465,58 @@ Item {
         left.sourceOffset = clip.sourceOffset
         left.duration = duration
         left.timelineStart = clip.timelineStart
-        //left.extractPreview()
+        left.extractPreview()
 
         //创建右片段
-        var right = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
+        let right = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
         right.source = clip.source
         right.sourceOffset = clip.sourceOffset + duration
         right.duration = clip.duration - duration
         right.timelineStart = clip.timelineStart + duration
-        //right.extractPreview()
+        right.extractPreview()
 
         clipModel.remove(index)
         clipModel.insert(index, { "source": left })
         clipModel.insert(index + 1, { "source": right })
-        setPointerPosition(currentTime)
+
+        if (index >= 0 && index < clips.length) {
+            clips.splice(index, 1, {
+                source: "file://" + left.source.filePath,
+                start: left.sourceOffset,
+                end: left.sourceOffset + left.duration,
+                timeLineStart: left.timelineStart
+            }, {
+                source: "file://" + right.source.filePath,
+                start: right.sourceOffset,
+                end: right.sourceOffset + right.duration,
+                timeLineStart: right.timelineStart
+            })
+        }
+
+        //setPointerPosition(currentTime)
+
+        console.log(clips[1].start+ " " + clips[1].timeLineStart)
     }
 
     function trimLeftCurrent() {
-        var idx = timeThumbnailViewId.currentIndex
+        let idx = timeThumbnailViewId.currentIndex
         if (idx < 0 || idx >= clipModel.count) {
             console.warn("没有选中剪辑")
             return
         }
 
-        var clip = clipModel.get(idx).source
+        let clip = clipModel.get(idx).source
         if (!clip) {
             console.warn("无效剪辑对象")
             return
         }
 
-        var currentTime = (timePointerId.x - 3) / pixelsPerSecond  //指针位置
-        var delta = currentTime - clip.timelineStart
+        let currentTime = (timePointerId.x - 3) / pixelsPerSecond  //指针位置
+        let delta = currentTime - clip.timelineStart
 
         clip.trimLeft(delta)
 
-        for (var i = 0; i < clips.length; ++i) {
+        for (let i = 0; i < clips.length; ++i) {
             if (Math.abs(clips[i].timeLineStart - clip.timelineStart) < 0.001) {
                 clips[i].start = clip.sourceOffset
                 clips[i].end = clip.sourceOffset + clip.duration
@@ -499,11 +525,11 @@ Item {
             }
         }
 
-        for (var j = idx + 1; j < clipModel.count; ++j) {
-           var nextClip = clipModel.get(j).source
+        for (let j = idx + 1; j < clipModel.count; ++j) {
+           let nextClip = clipModel.get(j).source
            if (!nextClip) continue
            nextClip.timelineStart = nextClip.timelineStart - delta
-           for (var k = 0; k < clips.length; ++k) {
+           for (let k = 0; k < clips.length; ++k) {
                if (Math.abs(clips[k].timeLineStart - (nextClip.timelineStart + delta)) < 0.001) {
                    clips[k].timeLineStart = nextClip.timelineStart
                    break
@@ -514,24 +540,24 @@ Item {
     }
 
     function trimRightCurrent(){
-        var idx = timeThumbnailViewId.currentIndex
+        let idx = timeThumbnailViewId.currentIndex
         if (idx < 0 || idx >= clipModel.count) {
             console.warn("没有选中剪辑")
             return
         }
 
-        var clip = clipModel.get(idx).source
+        let clip = clipModel.get(idx).source
         if (!clip) {
             console.warn("无效剪辑对象")
             return
         }
 
-        var currentTime = (timePointerId.x - 3) / pixelsPerSecond  //指针位置
-        var delta = clip.timelineStart + clip.duration - currentTime
+        let currentTime = (timePointerId.x - 3) / pixelsPerSecond  //指针位置
+        let delta = clip.timelineStart + clip.duration - currentTime
 
         clip.trimRight(delta)
 
-        for (var i = 0; i < clips.length; ++i) {
+        for (let i = 0; i < clips.length; ++i) {
             if (Math.abs(clips[i].timeLineStart - clip.timelineStart) < 0.001) {
                 clips[i].start = clip.sourceOffset
                 clips[i].end = clip.sourceOffset + clip.duration
@@ -540,11 +566,11 @@ Item {
             }
         }
 
-        for (var j = idx + 1; j < clipModel.count; ++j) {
-           var nextClip = clipModel.get(j).source
+        for (let j = idx + 1; j < clipModel.count; ++j) {
+           let nextClip = clipModel.get(j).source
            if (!nextClip) continue
            nextClip.timelineStart = nextClip.timelineStart - delta
-           for (var k = 0; k < clips.length; ++k) {
+           for (let k = 0; k < clips.length; ++k) {
                if (Math.abs(clips[k].timeLineStart - (nextClip.timelineStart + delta)) < 0.001) {
                    clips[k].timeLineStart = nextClip.timelineStart
                    break
@@ -556,14 +582,14 @@ Item {
 
 
     function deleteSelectedClip() {
-        var index = timeThumbnailViewId.currentIndex
+        let index = timeThumbnailViewId.currentIndex
         if (index < 0 || index >= clipModel.count) {
             console.warn("请先在时间轴上点击选中一个剪辑")
             return
         }
 
-        var deletedClip = clipModel.get(index).source
-        var deletedDuration = deletedClip.duration
+        let deletedClip = clipModel.get(index).source
+        let deletedDuration = deletedClip.duration
 
         clipModel.remove(index)
 
@@ -571,8 +597,8 @@ Item {
             clips.splice(index, 1)
         }
 
-        for (var i = index; i < clipModel.count; i++) {
-            var nextClip = clipModel.get(i).source
+        for (let i = index; i < clipModel.count; i++) {
+            let nextClip = clipModel.get(i).source
             if (!nextClip) continue
 
             nextClip.timelineStart = nextClip.timelineStart - deletedDuration
@@ -588,7 +614,7 @@ Item {
         updateTotalDuration()
         timeThumbnailViewId.currentIndex = -1
 
-        var newTime = 0
+        let newTime = 0
 
         if (clipModel.count === 0) {
             timelineDataUpdated([], 0, 0)
@@ -598,14 +624,14 @@ Item {
         }
 
         if (index > 0 && (index - 1) < clipModel.count) {
-            var preClip = clipModel.get(index - 1).source
+            let preClip = clipModel.get(index - 1).source
             if (preClip) {
                 newTime = preClip.timelineStart + preClip.duration
             } else {
                 newTime = 0
             }
         } else {
-            var firstClip = clipModel.get(0).source
+            let firstClip = clipModel.get(0).source
             if (firstClip) {
                 newTime = firstClip.timelineStart
             } else {
@@ -613,8 +639,7 @@ Item {
             }
         }
 
-        timelineDataUpdated(clips, totalDuration, newTime)
-
+        //timelineDataUpdated(clips, totalDuration, newTime)
         setPointerPosition(newTime)
         seekRequested(newTime)
     }

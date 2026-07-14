@@ -1,16 +1,16 @@
-cmake_minimum_required(VERSION 4.2.3)
-set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
-# cmake_minimum_required(VERSION 4.3.2)
-# set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
+cmake_minimum_required(VERSION 4.3.2)
+set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
 set(CMAKE_CXX_MODULE_STD ON)
 
-set(QML_IMPORT_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "" FORCE)
-
 project(Vidclip VERSION 0.1 LANGUAGES CXX)
-set(QT_QML_GENERATE_QMLLS_INI ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick)
-qt_standard_project_setup(REQUIRES 6.11)
+qt_standard_project_setup(REQUIRES 6.10)
+
+cmake_minimum_required(VERSION 4.3.2)
+set(QML_IMPORT_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "" FORCE)
+
+find_package(Qt6 REQUIRED COMPONENTS Quick)
 
 qt_add_executable(appVidclip  WIN32)
 
@@ -49,10 +49,9 @@ qt_add_qml_module(appVidclip
     SOURCES backend/mediasource.h backend/mediasource.cpp
     SOURCES backend/videoclip.h backend/videoclip.cpp
     RESOURCES readme
-    QML_FILES
+    QML_FILES components/Dialogs.qml
     QML_FILES components/ParameterPanel.qml
     RESOURCES
-    QML_FILES components/Dialogs.qml
 
 )
 
@@ -90,5 +89,6 @@ target_sources(appVidclip
 
 
 #include_directories(/usr/include/ffmpeg4.4)
+
 
 

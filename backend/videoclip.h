@@ -38,7 +38,7 @@ public:
     void setDuration(double duration);
     void setTimelineStart(double start);
 
-    void extractPreview();
+    Q_INVOKABLE void extractPreview();
 
     // 便捷操作（Q_INVOKABLE 以便 QML 调用）
     Q_INVOKABLE void trimLeft(double delta);   // 正 delta 缩短左侧

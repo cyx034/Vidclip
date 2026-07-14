@@ -21,6 +21,8 @@ Item {
     property int currClip: 0
     property bool _switching: false
 
+    property bool _seeking: false
+
     property real zoom: 1.0
     property real zoomX: 1.0
     property real zoomY: 1.0
@@ -108,52 +110,81 @@ Item {
 
 
 
-                function loadClip(time){
+                function loadClip(time,autoPlay = true){
                     currClip = locationClip(time)
                     if (currClip < 0) {
                         console.warn("未找到对应时间段的剪辑，忽略加载")
                         return
                     }
 
-                    var clip = clips[currClip]
+                    let clip = clips[currClip]
                     mediaUrl = clip.source
                     timeLineMediaPlayer.source = clip.source
 
-                    var offsetInClip = (time - clip.timeLineStart) * 1000
-                    var sourcePosition = clip.start * 1000 + offsetInClip
+                    let offsetInClip = (time - clip.timeLineStart) * 1000
+                    let sourcePosition = clip.start * 1000 + offsetInClip
                     sourcePosition = Math.max(clip.start * 1000, Math.min(sourcePosition, clip.end * 1000))
 
                     pendingPosition = sourcePosition
-                    pendingPlay = true
+                    pendingPlay = autoPlay
                 }
 
                 onPositionChanged:function(position) {
+                    if (_seeking) return
+                    if(clips.length === 0){
+                        timeLineMediaPlayer.stop()
+                        timeLineMediaPlayer.source = ""
+                        mediaPosition = 0
+                        progressChanged(0)
+                        playId.isplay = false
+                        currClip = 0
+                        _switching = false
+                        return
+                    }else{
+                        //timeLineMediaPlayer.play()
+                    }
+
                     if (materialModel && !_switching) {
-                        var currentClip = clips[currClip]
-                        var relativePos = position - currentClip.start * 1000
-                        var clipDuration = (currentClip.end - currentClip.start) * 1000
-                        if (relativePos >= Math.floor(clipDuration) && currClip < clips.length - 1) {
-                            _switching = true
-                            currClip++
-                            var nextClip = clips[currClip]
-                            var newSource = nextClip.source
-                            console.log(newSource)
-                            console.log(timeLineMediaPlayer.source)
-                            if (String(timeLineMediaPlayer.source) === String(newSource)) {
-                               timeLineMediaPlayer.position = nextClip.start * 1000
-                               timeLineMediaPlayer.play()
-                               playId.isplay = true
-                               _switching = false
-                           } else {
-                               timeLineMediaPlayer.source = newSource
-                               timeLineMediaPlayer.pendingPosition = nextClip.start * 1000
-                               timeLineMediaPlayer.pendingPlay = true
+                        let currentClip = clips[currClip]
+                        let relativePos = position - currentClip.start * 1000
+                        let clipDuration = (currentClip.end - currentClip.start) * 1000
+                        if (relativePos >= Math.floor(clipDuration)) {
+                            if (currClip >= clips.length - 1) {
+                                timeLineMediaPlayer.pause()
+                                playId.isplay = false
+                                //mediaPosition = (currentClip.timeLineStart) * 1000 + clipDuration
+                                //progressChanged(mediaPosition / 1000.0)
+                                return
+                            } else {
+                                _switching = true
+                                currClip++
+                                let nextClip = clips[currClip]
+                                if (!nextClip) {
+                                    _switching = false
+                                    return
+                                }
+                                let newSource = nextClip.source
+                                if (String(timeLineMediaPlayer.source) === String(newSource)) {
+                                    timeLineMediaPlayer.position = nextClip.start * 1000
+                                    timeLineMediaPlayer.play()
+                                    playId.isplay = true
+                                    _switching = false
+                                } else {
+                                    timeLineMediaPlayer.source = newSource
+                                    timeLineMediaPlayer.pendingPosition = nextClip.start * 1000
+                                    timeLineMediaPlayer.pendingPlay = true
+                                }
+                                return
                             }
-                        } else {
-                            var currentClip2 = clips[currClip]
-                            var relativePos2 = position - currentClip2.start * 1000
+                        }else{
+                            let currentClip2 = clips[currClip]
+                            if (!currentClip2) return
+
+                            let relativePos2 = position - currentClip2.start * 1000
                             mediaPosition = currentClip2.timeLineStart * 1000 + relativePos2
+                            //console.log("ppppppppppppppp" + position + " " +mediaPosition)
                             progressChanged(mediaPosition / 1000.0)
+
                         }
                     }
                 }
@@ -168,7 +199,7 @@ Item {
                             }
                             pendingPosition = -1
                             pendingPlay = false
-                            _switching = false   // 切换完成
+                            _switching = false
                         }
                     }
                 }
@@ -226,9 +257,13 @@ Item {
                 value: mediaPosition
 
                 onMoved: {
-                    if(!materialModel)
+                    if(!materialModel){
                         mediaPlayer.position = value
-
+                        mediaPosition = value
+                    }else{
+                        let seconds = value / 1000
+                        root.seekTo(seconds)
+                    }
                 }
             }
             Row{
@@ -409,22 +444,41 @@ Item {
         if (seconds < 0) seconds = 0
         if(!materialModel){
             mediaPlayer.position = seconds * 1000
-        }else{
-            currClip = locationClip(seconds)
-            if (currClip < 0) return
-            var clip = clips[currClip]
-            var offsetInClip = (seconds - clip.timeLineStart) * 1000
-            var sourcePosition = clip.start * 1000 + offsetInClip
-            var minPos = clip.start * 1000
-            var maxPos = clip.end * 1000
-            sourcePosition = Math.max(minPos, Math.min(sourcePosition, maxPos))
-            timeLineMediaPlayer.position = sourcePosition
             mediaPosition = seconds * 1000
+        }else{
+            _seeking = true
+            currClip = locationClip(seconds)
+            console.log("open" + currClip)
+            if (currClip < 0){
+                _seeking = false
+                return
+            }
+            let clip = clips[currClip]
+            let offsetInClip = (seconds - clip.timeLineStart) * 1000
+            let sourcePosition = clip.start * 1000 + offsetInClip
+            let minPos = clip.start * 1000
+            let maxPos = clip.end * 1000
+            sourcePosition = Math.max(minPos, Math.min(sourcePosition, maxPos))
+
+            let currentSource = timeLineMediaPlayer.source.toString()
+            let targetSource = clip.source.toString()
+            if (currentSource !== targetSource) {
+                // 切换源，并保持当前播放状态
+                timeLineMediaPlayer.source = targetSource
+                timeLineMediaPlayer.pendingPosition = sourcePosition
+                timeLineMediaPlayer.pendingPlay = playId.isplay   // 保持当前播放/暂停状态
+            } else {
+                timeLineMediaPlayer.position = sourcePosition
+            }
+
+            //timeLineMediaPlayer.position = sourcePosition
+            mediaPosition = seconds * 1000
+            _seeking = false
         }
     }
 
     function locationClip(time){
-        for(var i=0;i<clips.length;i++){
+        for(let i=0;i<clips.length;i++){
             if(clips[i].timeLineStart <=time && time <=clips[i].timeLineStart+clips[i].end-clips[i].start){
                 return i
             }
@@ -442,18 +496,17 @@ Item {
         //console.log(totalDuration)
     }
 
-    function setTimeLineMedia(mediaClips,Duration,time){
+    function setTimeLineMedia(mediaClips,Duration,time,autoPlay = true){
         materialModel = true
         clips = mediaClips
 
         totalDuration = Duration*1000
-
         if (timelineVideoOutput.parent !== mediaId) {
             timelineVideoOutput.parent = mediaId
             timelineVideoOutput.anchors.fill = mediaId
             timelineVideoOutput.visible = true
         }
-        timeLineMediaPlayer.loadClip(time)
+        timeLineMediaPlayer.loadClip(time,autoPlay)
         //seekTo(time)
     }
 
@@ -471,4 +524,8 @@ Item {
 
     }
 
+    function videoPause(){
+        timeLineMediaPlayer.pause()
+        playId.isplay = false
+    }
 }
