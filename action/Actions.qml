@@ -11,6 +11,9 @@ Item{
     signal trimLeftRequested()
     signal trimRightRequested()
     signal deleteRequested()
+    signal undoRequested()
+    signal redoRequested()
+
 
     property alias _import: _import
     property alias _export: _export
@@ -73,6 +76,10 @@ Item{
         icon.name: "edit-undo"
         icon.color: Style.textcolor
         shortcut:StandardKey.Undo
+        enabled: false
+        onTriggered: {
+            undoRequested()
+        }
     }
 
     Action{
@@ -80,6 +87,10 @@ Item{
         icon.name: "edit-redo"
         icon.color: Style.textcolor
         shortcut:StandardKey.Redo
+        enabled: false
+        onTriggered: {
+            redoRequested()
+        }
     }
 
     Action{

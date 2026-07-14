@@ -28,6 +28,9 @@ Item {
     signal timelineDataUpdated(var updatedClips, real duration, real seekTime)
 
     signal seekPause()
+    property int maxUndoStack: 20
+    property var undoStack: []
+    property var redoStack: []
 
     Rectangle{
         anchors.fill:parent
@@ -471,7 +474,7 @@ Item {
             console.warn("无效剪辑对象")
             return
         }
-
+        pushUndoState()
         let currentTime = (timePointerId.x - 3) / pixelsPerSecond
         let duration = currentTime - clip.timelineStart
 
@@ -504,6 +507,7 @@ Item {
             console.warn("没有选中剪辑")
             return
         }
+        pushUndoState()
 
         let clip = clipModel.get(idx).source
         if (!clip) {
@@ -532,6 +536,7 @@ Item {
             console.warn("没有选中剪辑")
             return
         }
+        pushUndoState()
 
         let clip = clipModel.get(idx).source
         if (!clip) {
@@ -561,6 +566,7 @@ Item {
             console.warn("请先在时间轴上点击选中一个剪辑")
             return
         }
+        pushUndoState()
 
         let deletedClip = clipModel.get(index).source
         let deletedDuration = deletedClip.duration
@@ -603,6 +609,116 @@ Item {
 
         setPointerPosition(seekTime)
         syncDataToPreview(seekTime)
+    }
+    function pushUndoState() {
+        var state = saveClipState()
+        undoStack.push(state)
+        if (undoStack.length > maxUndoStack) {
+            undoStack.shift()
+        }
+        redoStack = []
+        updateUndoButtons()
+    }
+
+    function saveClipState() {
+        var state = []
+        for (var i = 0; i < clipModel.count; i++) {
+            var clip = clipModel.get(i).source
+            state.push({
+                source: clip.source ? clip.source.filePath : "",
+                sourceOffset: clip.sourceOffset,
+                duration: clip.duration,
+                timelineStart: clip.timelineStart
+            })
+        }
+        return state
+    }
+
+    function restoreClipState(state) {
+        clipModel.clear()
+        clips = []
+        for (var i = 0; i < state.length; i++) {
+            var s = state[i]
+            var mediaSource = null
+            if (materialModel) {
+                for (var j = 0; j < materialModel.count; j++) {
+                    var item = materialModel.get(j)
+                    if (item.source && item.source.filePath === s.source) {
+                        mediaSource = item.source
+                        break
+                    }
+                }
+            }
+            if (mediaSource) {
+                var helper = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
+                var clip = helper.fromMediaSource(mediaSource)
+                helper.destroy()
+                clip.sourceOffset = s.sourceOffset
+                clip.duration = s.duration
+                clip.timelineStart = s.timelineStart
+                clip.extractPreview()
+
+                clipModel.append({ "source": clip })
+
+                clips.push({
+                    source: "file://" + clip.source.filePath,
+                    start: clip.sourceOffset,
+                    end: clip.sourceOffset + clip.duration,
+                    timeLineStart: clip.timelineStart
+                })
+            }
+        }
+
+        updateTotalDuration()
+    }
+
+    function undo() {
+        if (undoStack.length === 0) return
+        redoStack.push(saveClipState())
+        var state = undoStack.pop()
+        restoreClipState(state)
+        updateUndoButtons()
+        if (clipModel.count > 0) {
+            var firstClip = clipModel.get(0).source
+            var seekTime = firstClip ? firstClip.timelineStart : 0
+            timelineDataUpdated(clips, totalDuration, seekTime)
+            setPointerPosition(seekTime)
+            seekRequested(seekTime)
+        } else {
+            timelineDataUpdated([], 0, 0)
+            setPointerPosition(0)
+            seekRequested(0)
+        }
+    }
+
+    function redo() {
+        if (redoStack.length === 0) return
+        undoStack.push(saveClipState())
+        var state = redoStack.pop()
+        restoreClipState(state)
+        updateUndoButtons()
+        if (clipModel.count > 0) {
+            var firstClip = clipModel.get(0).source
+            var seekTime = firstClip ? firstClip.timelineStart : 0
+            timelineDataUpdated(clips, totalDuration, seekTime)
+            setPointerPosition(seekTime)
+            seekRequested(seekTime)
+        } else {
+            timelineDataUpdated([], 0, 0)
+            setPointerPosition(0)
+            seekRequested(0)
+        }
+    }
+
+    function updateUndoButtons() {
+        Actions._undo.enabled = undoStack.length > 0
+        Actions._redo.enabled = redoStack.length > 0
+    }
+
+    function clearHistory() {
+        undoStack = []
+        redoStack = []
+        updateUndoButtons()
     }
 }
 

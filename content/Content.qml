@@ -144,6 +144,12 @@ Item {
         Actions.deleteRequested.connect(function(){
             timelineAreaId.deleteSelectedClip()
         })
+        Actions.undoRequested.connect(function() {
+            timelineAreaId.undo()
+        })
+        Actions.redoRequested.connect(function() {
+            timelineAreaId.redo()
+        })
         timelineAreaId.timelineDataUpdated.connect(function(updatedClips, duration, seekTime) {
             if (updatedClips && updatedClips.length > 0) {
                 videoPreview.setTimeLineMedia(updatedClips, duration, seekTime, false)
