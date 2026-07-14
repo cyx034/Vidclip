@@ -41,7 +41,7 @@ Item{
             height: 24
             font.pixelSize: 16
             font.bold: true
-            z: 10   // 确保在最上层
+            z: 10   //确保在最上层
             background: Rectangle {
                 color: parent.hovered ? Style.highlight : Style.d_button
                 radius: 4
@@ -60,7 +60,7 @@ Item{
         id: exportDialog
         modal: true
         width: 680
-        height: 600
+        height: 500
         anchors.centerIn: parent
         padding: 0
         background: Rectangle {
@@ -124,6 +124,12 @@ Item{
                         background: Rectangle {
                             color: highlighted ? Style.highlight : Style.surface
                         }
+
+                        //点击时更新 ComboBox 的 currentIndex
+                        onClicked: {
+                            combox.currentIndex = index
+                            combox.popup.close()
+                        }
                     }
                 }
             }
@@ -146,7 +152,7 @@ Item{
             anchors.fill: parent
             spacing: 0
 
-            // 自定义标题栏
+            //自定义标题栏
             Rectangle {
                 id: titleBar
                 Layout.fillWidth: true
@@ -170,14 +176,14 @@ Item{
                 }
             }
 
-            // 内容区域
+            //内容区域
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: 15
                 anchors.margins: 20
 
-                // 左列：封面编辑
+                //左列：封面编辑
                 ColumnLayout {
                     Layout.preferredWidth:200
                     Layout.fillHeight: true
@@ -211,10 +217,11 @@ Item{
                 }
 
 
-                // 右列：导出设置
+                //右列：导出设置
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    Layout.rightMargin: 20
                     spacing: 12
 
                     Text {
@@ -224,29 +231,7 @@ Item{
                         color: Style.textcolor
                     }
 
-                    Text {
-                        text: qsTr("Title")   //标题
-                        font.pixelSize: 14
-                        font.bold: true
-                        color: Style.textcolor
-                        Layout.topMargin: 10
-                    }
-
-                    TextField {
-                        id: titleField
-                        Layout.fillWidth: true
-                        placeholderText: "My Videos"
-                        text: "My Videos"
-                        color: Style.textcolor
-                        background: Rectangle {
-                            color: Style.d_button
-                            border.color: Style.border
-                            border.width: 1
-                            radius: 4
-                        }
-                    }
-
-                    // 保存位置
+                    //保存位置
                     GroupBox {
                         Layout.fillWidth: true
                         label: Text {
@@ -285,7 +270,7 @@ Item{
                         }
                     }
 
-                    // 视频导出设置
+                    //视频导出设置
                     GroupBox {
                         Layout.fillWidth: true
                         label: Text {
@@ -333,6 +318,7 @@ Item{
                                     }
                                 }
                             }
+
 
                             Text { text: "Encoder:"; color: Style.textcolor }  //编码器
                             MComboBox {
@@ -391,7 +377,7 @@ Item{
                         }
                     }
 
-                    // 预估信息
+                    //预估信息
                     Rectangle {
                         Layout.fillWidth: true
                         height: 50
@@ -449,7 +435,6 @@ Item{
             }
         }
 
-
         //确认逻辑
         onAccepted: {
             let settings = {
@@ -461,8 +446,7 @@ Item{
                 encoder: exportDialog.encoder,
                 saveToCloud: exportDialog.saveToCloud,
                 coverPath: exportDialog.coverPath,
-                savePath: savePathField.text,
-                title: titleField.text
+                savePath: savePathField.text
             }
             exportWithSettings(settings)
         }
@@ -481,6 +465,10 @@ Item{
             border.color:Style.border
         }
 
+        //临时封面路径
+        property string tempCoverPath: ""
+        property var timelineArea: null  //引用时间轴
+
         header: Rectangle {
             height: 40
             color: Style.surface
@@ -498,7 +486,7 @@ Item{
             spacing: 15
             anchors.margins: 15
 
-            // 封面预览
+            //封面预览
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 120
@@ -511,11 +499,11 @@ Item{
                     anchors.fill: parent
                     anchors.margins: 5
                     fillMode: Image.PreserveAspectFit
-                    source: exportDialog.coverPath
+                    source:coverSelectorId.tempCoverPath
                 }
             }
 
-            // 导入按钮
+            //导入按钮
             Button {
                 text: "Import From The Local Area"
                 Layout.fillWidth: true
@@ -549,9 +537,12 @@ Item{
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
+                onClicked: {
+                    //调用选择第一帧为封面函数
+                }
             }
 
-            // 右下角按钮行
+            //右下角按钮行
             RowLayout {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignRight
@@ -592,12 +583,21 @@ Item{
             }
         }
 
+        onOpened: {
+            tempCoverPath = exportDialog.coverPath
+            coverPreviewSmall.source = tempCoverPath
+        }
+
         onAccepted: {
+            exportDialog.coverPath = tempCoverPath
+            coverPreview.source = tempCoverPath
             exportDialog.visible = true
         }
+
         onRejected: {
             exportDialog.visible = true
         }
+
 
         FileDialog {
             id: coverImageId
@@ -607,10 +607,12 @@ Item{
 
             onAccepted: {
                 if (selectedFile) {
-                    exportDialog.coverPath = selectedFile.toString()
-                    coverPreview.source = exportDialog.coverPath
-                    coverPreviewSmall.source = exportDialog.coverPath
+                    coverSelectorId.tempCoverPath = selectedFile.toString()
+                    coverPreviewSmall.source = selectedFile.toString()
                 }
+            }
+            onRejected: {
+                //用户取消选择文件，保持tempCoverPath不变
             }
         }
     }

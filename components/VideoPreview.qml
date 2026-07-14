@@ -314,7 +314,7 @@ Item {
                 }
                 TapHandler{
                     onTapped:{
-
+                        backward()
                     }
                 }
             }
@@ -333,7 +333,7 @@ Item {
                 }
                 TapHandler{
                     onTapped:{
-
+                        forward()
                     }
                 }
             }
@@ -580,5 +580,45 @@ Item {
     function videoPause(){
         timeLineMediaPlayer.pause()
         playId.isplay = false
+    }
+
+    function forward() {
+        if (!materialModel) {
+            let newPos = mediaPlayer.position + 5000
+            if (newPos > mediaPlayer.duration) {
+                newPos = mediaPlayer.duration
+            }
+            mediaPlayer.position = newPos
+            mediaPosition = newPos
+        } else {
+            //时间轴模式
+            let currentTime = mediaPosition / 1000
+            let targetTime = currentTime + 5
+            let duration = totalDuration / 1000
+
+            if (targetTime > duration) {
+                targetTime = duration
+            }
+            seekTo(targetTime)
+        }
+    }
+
+    function backward() {
+        if (!materialModel) {
+            let newPos = mediaPlayer.position - 5000
+            if (newPos < 0) {
+                newPos = 0
+            }
+            mediaPlayer.position = newPos
+            mediaPosition = newPos
+        } else {
+            //时间轴模式
+            let currentTime = mediaPosition / 1000
+            let targetTime = currentTime - 5
+            if (targetTime < 0) {
+                targetTime = 0
+            }
+            seekTo(targetTime)
+        }
     }
 }

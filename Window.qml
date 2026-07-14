@@ -182,10 +182,11 @@ ApplicationWindow {
 
     // 导出入口函数：检查媒体是否存在，然后打开导出设置对话框
     function exportCurrentMedia() {
-        if (!contentItem.currentMediaUrl) {
-            dialogs._noExportDialog.open()
-        }else{
+        if (contentItem.clipCount > 0) {
             dialogs._exportDialog.open()
+        } else {
+            dialogs._noExportDialog.open()
         }
     }
+
 }

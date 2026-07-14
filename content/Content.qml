@@ -17,6 +17,7 @@ Item {
     property alias materialBin:materialBin
 
     property var clip:[]
+    property int clipCount: 0
 
     RowLayout{
         anchors.fill: parent
@@ -68,7 +69,7 @@ Item {
                 visible: !previewFullscreen
                 materialModel: materialBin.materialModel
                 onTotalDurationChanged: {
-
+                    clipCount = clips.length
                     videoPreview.totalDuration = totalDuration*1000
                 }
             }
