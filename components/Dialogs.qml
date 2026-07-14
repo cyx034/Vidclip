@@ -443,8 +443,8 @@ Item{
             fileMode: FileDialog.Directory
             onAccepted: {
                 if (selectedFile) {
-                    savePath = selectedFile.toString()
-                    savePathField.text = savePath
+                    exportDialog.savePath = selectedFile.toString()
+                    savePathField.text = exportDialog.savePath
                 }
             }
         }
@@ -607,9 +607,9 @@ Item{
 
             onAccepted: {
                 if (selectedFile) {
-                    coverPath = selectedFile.toString()
-                    coverPreview.source = coverPath
-                    coverPreviewSmall.source = coverPath
+                    exportDialog.coverPath = selectedFile.toString()
+                    coverPreview.source = exportDialog.coverPath
+                    coverPreviewSmall.source = exportDialog.coverPath
                 }
             }
         }

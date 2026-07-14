@@ -110,8 +110,8 @@ Item {
     Component.onCompleted: {
         timelineAreaId.openTimeLineMedia.connect(function(time){
             if (timelineAreaId.clips && timelineAreaId.clips.length > 0) {
-               videoPreview.setTimeLineMedia(timelineAreaId.clips, timelineAreaId.totalDuration, time,false)
-            }else {
+               videoPreview.setTimeLineMedia(timelineAreaId.clips, timelineAreaId.totalDuration, time, false)
+            } else {
                clearVideoPreview()
             }
         })
@@ -120,40 +120,15 @@ Item {
             videoPreview.seekTo(time)
         })
         videoPreview.progressChanged.connect(function(seconds) {
-            //console.log("qqqqqqqqqqqqqqq" + seconds)
             timelineAreaId.setPointerPosition(seconds)
         })
         timelineAreaId.clipInformation.connect(function(clip){
             parameterPanelId.setClipInfo(clip)
         })
 
-        parameterPanelId.scaleChange.connect(function(scale){
-            videoPreview.zoom = scale/100
-        })
-        parameterPanelId.positionXChange.connect(function(x){
-            videoPreview.offsetX = x
-        })
-        parameterPanelId.positionYChange.connect(function(y){
-            videoPreview.offsetY = y
-        })
-        parameterPanelId.scaleWidthChange.connect(function(scaleX){
-            videoPreview.zoomX = scaleX
-        })
-        parameterPanelId.scaleHeightChange.connect(function(scaleY){
-            videoPreview.zoomY = scaleY
-        })
-        parameterPanelId.rotatChange.connect(function(scale){
-            videoPreview.rotat = scale
-        })
-        parameterPanelId.volumeChange.connect(function(volume){
-            videoPreview.mvolume = volume
-        })
-        parameterPanelId.speedChange.connect(function(speed){
-            videoPreview.speed = speed
-        })
+        // 移除所有 parameterPanelId.xxxChange 连接
 
         timelineAreaId.updateDuration.connect(function(duration){
-            console.log(duration)
             parameterPanelId.totalDuration = duration
         })
 
@@ -171,8 +146,7 @@ Item {
         })
         timelineAreaId.timelineDataUpdated.connect(function(updatedClips, duration, seekTime) {
             if (updatedClips && updatedClips.length > 0) {
-                console.log("ok" + updatedClips[0].end)
-                videoPreview.setTimeLineMedia(updatedClips, duration, seekTime,false)
+                videoPreview.setTimeLineMedia(updatedClips, duration, seekTime, false)
             } else {
                 clearVideoPreview()
             }

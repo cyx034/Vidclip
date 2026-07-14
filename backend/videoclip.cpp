@@ -125,3 +125,91 @@ void VideoClip::extractPreview()
     qDebug() << m_source->filePath() << " " << m_source->urls().size() << " " << m_urls.size();
     emit urlsChanged();
 }
+
+void VideoClip::setScale(double scale)
+{
+    if (qFuzzyCompare(m_scale, scale)) return;
+    m_scale = scale;
+
+    // 直接修改成员变量，不触发信号
+    m_scaleX = scale;
+    m_scaleY = scale;
+
+    emit scaleChanged();
+    emit scaleXChanged();
+    emit scaleYChanged();
+    emitParameterUpdated();
+}
+
+void VideoClip::setScaleX(double scaleX)
+{
+    if (qFuzzyCompare(m_scaleX, scaleX)) return;
+    m_scaleX = scaleX;
+    emit scaleXChanged();
+    emitParameterUpdated();
+}
+
+void VideoClip::setScaleY(double scaleY)
+{
+    if (qFuzzyCompare(m_scaleY, scaleY)) return;
+    m_scaleY = scaleY;
+    emit scaleYChanged();
+    emitParameterUpdated();
+}
+
+void VideoClip::setOffsetX(double offsetX)
+{
+    if (qFuzzyCompare(m_offsetX, offsetX))
+        return;
+    m_offsetX = offsetX;
+    emit offsetXChanged();
+    emitParameterUpdated();
+}
+
+void VideoClip::setOffsetY(double offsetY)
+{
+    if (qFuzzyCompare(m_offsetY, offsetY))
+        return;
+    m_offsetY = offsetY;
+    emit offsetYChanged();
+    emitParameterUpdated();
+}
+
+void VideoClip::setRotation(double rotation)
+{
+    if (qFuzzyCompare(m_rotation, rotation))
+        return;
+    m_rotation = rotation;
+    emit rotationChanged();
+    emitParameterUpdated();
+}
+
+void VideoClip::setVolume(double volume)
+{
+    if (qFuzzyCompare(m_volume, volume)) return;
+    m_volume = volume;
+    emit volumeChanged();
+    emitParameterUpdated();
+}
+
+void VideoClip::setSpeed(double speed)
+{
+    if (qFuzzyCompare(m_speed, speed))
+        return;
+    m_speed = speed;
+    emit speedChanged();
+    emitParameterUpdated();
+}
+
+void VideoClip::setUniformScale(bool uniform)
+{
+    if (m_uniformScale == uniform)
+        return;
+    m_uniformScale = uniform;
+    emit uniformScaleChanged();
+    emitParameterUpdated();
+}
+void VideoClip::emitParameterUpdated()
+{
+    emit parametersUpdated();
+}

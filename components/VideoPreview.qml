@@ -23,20 +23,6 @@ Item {
 
     property bool _seeking: false
 
-    property real zoom: 1.0
-    property real zoomX: 1.0
-    property real zoomY: 1.0
-    property real offsetX: 0.0
-    property real offsetY: 0.0
-    property real rotat:0.0
-    property real mvolume:0.0
-    property real speed: 1.0
-
-
-    onMvolumeChanged: {
-        timeLineMediaPlayer.audioOutput.volume = Math.pow(10,mvolume/20)
-    }
-
 
     Rectangle{
         anchors.fill:parent
@@ -85,32 +71,51 @@ Item {
                 source: mediaUrl
                 property bool pendingPlay: false
                 property real pendingPosition: -1
-                playbackRate: speed
+                playbackRate: (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip)
+                              ? clips[currClip].videoClip.speed : 1.0
                 audioOutput: AudioOutput {
                     id: timeLineAudioOutput
+                    volume: (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip)
+                            ? clips[currClip].videoClip.volume : 1.0
                 }
                 videoOutput: VideoOutput {
                     id: timelineVideoOutput
                     fillMode: VideoOutput.PreserveAspectFit
                     transform: [
-                        Scale { xScale: zoom; yScale: zoom
+                        Scale {
+                                xScale: (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip)
+                                        ? clips[currClip].videoClip.scale / 100 : 1.0
+                                yScale: (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip)
+                                        ? clips[currClip].videoClip.scale / 100 : 1.0
+                                origin.x: timelineVideoOutput.width / 2
+                                origin.y: timelineVideoOutput.height / 2
+                        },
+                        Scale {
+                            xScale: (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip)
+                                    ? clips[currClip].videoClip.scaleX / 100 : 1.0
+                            yScale: (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip)
+                                    ? clips[currClip].videoClip.scaleY / 100 : 1.0
                             origin.x: timelineVideoOutput.width / 2
-                            origin.y: timelineVideoOutput.height / 2},
-                        Scale { xScale: zoomX; yScale: zoomY
-                            origin.x: timelineVideoOutput.width / 2
-                            origin.y: timelineVideoOutput.height / 2},
+                            origin.y: timelineVideoOutput.height / 2
+                        },
                         Rotation {
-                            angle: rotat
+                            angle: (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip)
+                                   ? clips[currClip].videoClip.rotation : 0
                             origin.x: timelineVideoOutput.width / 2
-                            origin.y: timelineVideoOutput.height / 2},
-                        Translate { x: offsetX; y: offsetY }
+                            origin.y: timelineVideoOutput.height / 2
+                        },
+                        Translate {
+                            x: (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip)
+                               ? clips[currClip].videoClip.offsetX : 0
+                            y: (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip)
+                               ? clips[currClip].videoClip.offsetY : 0
+                        }
                     ]
-
                 }
 
 
 
-                function loadClip(time,autoPlay = true){
+                function loadClip(time, autoPlay = true) {
                     currClip = locationClip(time)
                     if (currClip < 0) {
                         console.warn("未找到对应时间段的剪辑，忽略加载")
@@ -126,10 +131,10 @@ Item {
                     sourcePosition = Math.max(clip.start * 1000, Math.min(sourcePosition, clip.end * 1000))
 
                     pendingPosition = sourcePosition
-                    pendingPlay = autoPlay
+                    pendingPlay = autoPlay   // 关键修正：使用传入参数
                 }
 
-                onPositionChanged:function(position) {
+                onPositionChanged: function(position) {
                     if (_seeking) return
                     if(clips.length === 0){
                         timeLineMediaPlayer.stop()
@@ -140,20 +145,19 @@ Item {
                         currClip = 0
                         _switching = false
                         return
-                    }else{
-                        //timeLineMediaPlayer.play()
                     }
 
                     if (materialModel && !_switching) {
                         let currentClip = clips[currClip]
                         let relativePos = position - currentClip.start * 1000
                         let clipDuration = (currentClip.end - currentClip.start) * 1000
+
+                        console.log("currClip:", currClip, "relativePos:", relativePos, "clipDuration:", clipDuration)
+
                         if (relativePos >= Math.floor(clipDuration)) {
                             if (currClip >= clips.length - 1) {
                                 timeLineMediaPlayer.pause()
                                 playId.isplay = false
-                                //mediaPosition = (currentClip.timeLineStart) * 1000 + clipDuration
-                                //progressChanged(mediaPosition / 1000.0)
                                 return
                             } else {
                                 _switching = true
@@ -163,28 +167,33 @@ Item {
                                     _switching = false
                                     return
                                 }
+
+                                console.log("Switching to clip", currClip, "source:", nextClip.source, "start:", nextClip.start, "end:", nextClip.end, "play:", playId.isplay)
+
                                 let newSource = nextClip.source
                                 if (String(timeLineMediaPlayer.source) === String(newSource)) {
                                     timeLineMediaPlayer.position = nextClip.start * 1000
-                                    timeLineMediaPlayer.play()
-                                    playId.isplay = true
+                                    // 根据当前播放状态决定是否播放
+                                    if (playId.isplay) {
+                                        timeLineMediaPlayer.play()
+                                    } else {
+                                        timeLineMediaPlayer.pause()
+                                    }
                                     _switching = false
                                 } else {
                                     timeLineMediaPlayer.source = newSource
                                     timeLineMediaPlayer.pendingPosition = nextClip.start * 1000
-                                    timeLineMediaPlayer.pendingPlay = true
+                                    // 保持当前播放状态
+                                    timeLineMediaPlayer.pendingPlay = playId.isplay
                                 }
                                 return
                             }
-                        }else{
+                        } else {
                             let currentClip2 = clips[currClip]
                             if (!currentClip2) return
-
                             let relativePos2 = position - currentClip2.start * 1000
                             mediaPosition = currentClip2.timeLineStart * 1000 + relativePos2
-                            //console.log("ppppppppppppppp" + position + " " +mediaPosition)
                             progressChanged(mediaPosition / 1000.0)
-
                         }
                     }
                 }
@@ -192,10 +201,16 @@ Item {
                 onMediaStatusChanged: {
                     if (materialModel && mediaStatus === MediaPlayer.LoadedMedia) {
                         if (pendingPosition >= 0) {
+
+                            console.log("Loaded media, pendingPlay:", pendingPlay, "position:", pendingPosition)
+
                             timeLineMediaPlayer.position = pendingPosition
                             if (pendingPlay) {
                                 timeLineMediaPlayer.play()
                                 playId.isplay = true
+                            } else {
+                                timeLineMediaPlayer.pause()
+                                playId.isplay = false
                             }
                             pendingPosition = -1
                             pendingPlay = false
@@ -211,34 +226,32 @@ Item {
                 id: videoOutput
                 anchors.fill: parent
                 fillMode: VideoOutput.PreserveAspectFit
-                visible: mediaType === "video"
+                visible: mediaType === "video" && !materialModel
             }
 
             Image {
                 id: imageDisplay
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
-                visible: mediaType === "image"
+                visible: mediaType === "image" && !materialModel
                 source: mediaType === "image" ? mediaUrl : ""
-                asynchronous: true  //异步加载
+                asynchronous: true
             }
 
-            TapHandler{
+            TapHandler {
                 onTapped: {
-                    if(playId.isplay === true){
+                    if (playId.isplay === true) {
                         playId.isplay = false
-                        if(!materialModel){
+                        if (!materialModel)
                             mediaPlayer.pause()
-                        }else{
+                        else
                             timeLineMediaPlayer.pause()
-                        }
-                    }else{
+                    } else {
                         playId.isplay = true
-                        if(!materialModel){
+                        if (!materialModel)
                             mediaPlayer.play()
-                        }else{
+                        else
                             timeLineMediaPlayer.play()
-                        }
                     }
                 }
             }
@@ -338,18 +351,20 @@ Item {
                     id:playImageId
                     source: playId.isplay?"qrc:/image/pause.svg":"qrc:/image/play.svg"
                 }
-                TapHandler{
-                    onTapped:{
-                        if(playId.isplay){
+                TapHandler {
+                    onTapped: {
+                        if (playId.isplay) {
                             playId.isplay = false
-                            if(!materialModel)
+                            if (!materialModel)
                                 mediaPlayer.pause()
-                            timeLineMediaPlayer.pause()
-                        }else{
+                            else
+                                timeLineMediaPlayer.pause()
+                        } else {
                             playId.isplay = true
-                            if(!materialModel)
+                            if (!materialModel)
                                 mediaPlayer.play()
-                            timeLineMediaPlayer.play()
+                            else
+                                timeLineMediaPlayer.play()
                         }
                     }
                 }
@@ -416,14 +431,18 @@ Item {
                         //anchors.horizontalCenter: parent.horizontalCenter
                         width: 100
                         height: 120
-                        value: materialModel?timeLineMediaPlayer.audioOutput.volume:mediaPlayer.audioOutput.volume
+                        value: materialModel? (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip? clips[currClip].videoClip.volume : 1.0): mediaPlayer.audioOutput.volume
                         orientation: Qt.Vertical
                         from:0.0
                         to:1.0
                         onValueChanged: {
-                            if(!materialModel)
-                                mediaPlayer.audioOutput.volume =value
-                            timeLineMediaPlayer.audioOutput.volume = value
+                            if (!materialModel) {
+                                mediaPlayer.audioOutput.volume = value
+                            } else {
+                                if (clips.length > 0 && currClip >= 0 && currClip < clips.length && clips[currClip] && clips[currClip].videoClip) {
+                                    clips[currClip].videoClip.volume = value
+                                }
+                            }
                         }
                     }
                     Text{
@@ -440,19 +459,37 @@ Item {
         }
     }
 
+    /*function setParameter(){
+        //currClip = locationClip(seconds)
+        let clip = clips[currClip]
+
+        clip.videoClip.scale = zoom
+        clip.videoClip.scaleX = zoomX
+        clip.videoClip.scaleY = zoomY
+        clip.videoClip.offsetX = offsetX
+        clip.videoClip.offsetY = offsetY
+        clip.videoClip.rotation = rotat
+        clip.videoClip.volume = mvolume
+        clip.videoClip.speed = speed
+    }*/
+
     function seekTo(seconds) {
         if (seconds < 0) seconds = 0
-        if(!materialModel){
+        if (seconds > totalDuration / 1000) seconds = totalDuration / 1000
+
+        if (!materialModel) {
             mediaPlayer.position = seconds * 1000
             mediaPosition = seconds * 1000
-        }else{
+        } else {
             _seeking = true
             currClip = locationClip(seconds)
-            console.log("open" + currClip)
-            if (currClip < 0){
+            if (currClip < 0) {
                 _seeking = false
+                mediaPosition = seconds * 1000
+                progressChanged(mediaPosition / 1000.0)
                 return
             }
+
             let clip = clips[currClip]
             let offsetInClip = (seconds - clip.timeLineStart) * 1000
             let sourcePosition = clip.start * 1000 + offsetInClip
@@ -463,23 +500,24 @@ Item {
             let currentSource = timeLineMediaPlayer.source.toString()
             let targetSource = clip.source.toString()
             if (currentSource !== targetSource) {
-                // 切换源，并保持当前播放状态
                 timeLineMediaPlayer.source = targetSource
                 timeLineMediaPlayer.pendingPosition = sourcePosition
-                timeLineMediaPlayer.pendingPlay = playId.isplay   // 保持当前播放/暂停状态
+                timeLineMediaPlayer.pendingPlay = playId.isplay
             } else {
                 timeLineMediaPlayer.position = sourcePosition
             }
 
-            //timeLineMediaPlayer.position = sourcePosition
             mediaPosition = seconds * 1000
             _seeking = false
         }
+
+        progressChanged(mediaPosition / 1000.0)
     }
 
     function locationClip(time){
         for(let i=0;i<clips.length;i++){
             if(clips[i].timeLineStart <=time && time <=clips[i].timeLineStart+clips[i].end-clips[i].start){
+                console.log("----------------------------" + i)
                 return i
             }
         }
@@ -487,27 +525,42 @@ Item {
     }
 
     function setMedia(url, type) {
+
+        timeLineMediaPlayer.stop()
+        timeLineMediaPlayer.source = ""
+        timelineVideoOutput.visible = false
+
         materialModel = false
         mediaUrl = url
         mediaType = type
+        mediaPlayer.source = url
         mediaPlayer.play()
         playId.isplay = true
-        //totalDuration = mediaPlayer.duration
-        //console.log(totalDuration)
+        videoOutput.visible = (type === "video")
+        imageDisplay.visible = (type === "image")
+        imageDisplay.source = (type === "image") ? url : ""
+        timelineVideoOutput.visible = false
     }
 
-    function setTimeLineMedia(mediaClips,Duration,time,autoPlay = true){
+    function setTimeLineMedia(mediaClips, Duration, time, autoPlay = true) {
+        mediaPlayer.stop()
+        mediaPlayer.source = ""
+        videoOutput.visible = false
+        imageDisplay.visible = false
+        imageDisplay.source = ""
+
         materialModel = true
         clips = mediaClips
+        totalDuration = Duration * 1000
+        mediaType = "video"  // 时间线仅支持视频
 
-        totalDuration = Duration*1000
         if (timelineVideoOutput.parent !== mediaId) {
             timelineVideoOutput.parent = mediaId
             timelineVideoOutput.anchors.fill = mediaId
-            timelineVideoOutput.visible = true
         }
-        timeLineMediaPlayer.loadClip(time,autoPlay)
-        //seekTo(time)
+        timelineVideoOutput.visible = true
+
+        timeLineMediaPlayer.loadClip(time, autoPlay)
     }
 
     function formatTime(ms) {

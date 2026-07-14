@@ -4,73 +4,62 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 Item {
-    id:root
+    id: root
     property var currentClip: null
     property real totalDuration: 0
 
-    signal scaleChange(real scale)
-    signal positionXChange(real positionX)
-    signal positionYChange(real positionY)
-    signal scaleWidthChange(real scaleWidth)
-    signal scaleHeightChange(real scaleHeight)
-    signal rotatChange(real rotat)
-    signal volumeChange(real volume)
-    signal speedChange(real speed)
-
     onTotalDurationChanged: {
-        durationId.text = infoItemId.formatTime(totalDuration*1000)
+        durationId.text = infoItemId.formatTime(totalDuration * 1000)
     }
 
-    Rectangle{
+    Rectangle {
         anchors.fill: parent
         color: Style.p_background
         border.color: Style.border
         border.width: 1
     }
 
-    component MText:Text{
+    component MText: Text {
         color: Style.textcolor
         font.pixelSize: 15
     }
 
-    //默认样式
-    Item{
-        id:infoItemId
-        anchors.fill:parent
-        visible:true
-        z:0
+    // 默认信息面板
+    Item {
+        id: infoItemId
+        anchors.fill: parent
+        visible: true
+        z: 0
 
         property string _projectName: "UnnamedProject"
         property string _projectFileLocation: "/"
-        property string _ratio:"adapt"
+        property string _ratio: "adapt"
         property string _resolution: "adapt"
         property string _frameRate: "25fps"
         property string _duration: formatTime(totalDuration)
 
         Text {
-            id:titleTextId
+            id: titleTextId
             anchors.left: parent.left
             anchors.leftMargin: 10
-            anchors.top:parent.top
+            anchors.top: parent.top
             anchors.topMargin: 6
             text: "ItemInfomation"
             font.pixelSize: 16
             font.bold: true
             color: Style.textcolor
         }
-
-        Rectangle{
-            id:rectId
+        Rectangle {
+            id: rectId
             anchors.top: titleTextId.bottom
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.topMargin: 6
             height: 2
-            color:Style.border
+            color: Style.border
         }
-
         GridLayout {
-            id:gridLayoutId
+            id: gridLayoutId
             anchors.top: rectId.bottom
             anchors.topMargin: 6
             anchors.left: parent.left
@@ -80,24 +69,18 @@ Item {
             columns: 2
             columnSpacing: 10
             rowSpacing: 2
-
             MText { text: "ProjectName: ";  }
-            MText { text: infoItemId._projectName;}
-
-            MText { text: "ProjectFileLocation: ";}
-            MText { text: infoItemId._projectFileLocation;}
-
-            MText { text: "Ratio: ";}  //比例
-            MText { text: infoItemId._ratio;}
-
-            MText { text: "Resolution: ";}  //分辨率
-            MText { text: infoItemId._resolution;}
-
-            MText { text: "FrameRate: ";}   //帧率
-            MText { text: infoItemId._frameRate;}
-
-            MText { text: "Duration: ";}
-            MText { id:durationId ;text: infoItemId._duration;}
+            MText { text: infoItemId._projectName; }
+            MText { text: "ProjectFileLocation: "; }
+            MText { text: infoItemId._projectFileLocation; }
+            MText { text: "Ratio: "; }
+            MText { text: infoItemId._ratio; }
+            MText { text: "Resolution: "; }
+            MText { text: infoItemId._resolution; }
+            MText { text: "FrameRate: "; }
+            MText { text: infoItemId._frameRate; }
+            MText { text: "Duration: "; }
+            MText { id: durationId; text: infoItemId._duration; }
         }
 
         function formatTime(ms) {
@@ -111,41 +94,35 @@ Item {
         }
     }
 
-    //剪辑样式
+    // 剪辑参数面板
     Item {
         id: labelId
         anchors.fill: parent
-        visible:false
-        z:1
+        visible: false
+        z: 1
 
-        // 当前选中的标签索引（0:Video, 1:Audio, 2:Speed）
         property int currentIndex: 0
 
-        // 三个标签
         Row {
             id: labelRowId
             anchors.left: parent.left
             anchors.leftMargin: 10
-            anchors.top:parent.top
+            anchors.top: parent.top
             anchors.topMargin: 6
             spacing: 20
-
             Repeater {
                 model: ["Video", "Audio", "Speed"]
                 Text {
                     text: modelData
                     font.pixelSize: 16
                     color: index === labelId.currentIndex ? Style.textcolor : Style.highlight
-                    TapHandler{
-                        onTapped:labelId.currentIndex = index
-                    }
+                    TapHandler { onTapped: labelId.currentIndex = index }
                 }
             }
         }
 
-        // 分割线
         Rectangle {
-            id:rect2Id
+            id: rect2Id
             anchors.top: labelRowId.bottom
             anchors.topMargin: 6
             anchors.left: parent.left
@@ -154,35 +131,35 @@ Item {
             color: Style.border
         }
 
-        component MSpinBox:SpinBox {
+        // 通用控件组件
+        component MSpinBox: SpinBox {
             editable: true
             implicitWidth: 75
-            palette.text:Style.textcolor
-            palette.base:Style.m_background
-            background:Rectangle {
-                anchors.fill:parent
+            palette.text: Style.textcolor
+            palette.base: Style.m_background
+            background: Rectangle {
+                anchors.fill: parent
                 color: Style.background
             }
             property string suffix: ""
-            property regexp regExp:/^\s*(\d+)\s*$/
+            property regexp regExp: /^\s*(\d+)\s*$/
             validator: RegularExpressionValidator { regularExpression: regExp }
 
             textFromValue: function(value, locale) {
                 return Number(value).toLocaleString(locale, 'f', 0) + suffix
             }
-
             valueFromText: function(text, locale) {
                 return Number.fromLocaleString(locale, regExp.exec(text)[1])
             }
         }
 
-        component MDoubleSpinBox:DoubleSpinBox{
+        component MDoubleSpinBox: DoubleSpinBox {
             editable: true
             implicitWidth: 75
-            palette.text:Style.textcolor
-            palette.base:Style.m_background
-            background:Rectangle {
-                anchors.fill:parent
+            palette.text: Style.textcolor
+            palette.base: Style.m_background
+            background: Rectangle {
+                anchors.fill: parent
                 color: Style.background
             }
             property string suffix: ""
@@ -190,16 +167,14 @@ Item {
             validator: RegularExpressionValidator { regularExpression: regExp }
 
             textFromValue: function(value, decimals, locale) {
-                   return Number(value).toLocaleString(locale, 'f', decimals) + suffix
-                }
-
+                return Number(value).toLocaleString(locale, 'f', decimals) + suffix
+            }
             valueFromText: function(text, locale) {
                 return Number.fromLocaleString(locale, regExp.exec(text)[1])
             }
-
         }
 
-        // 页面内容（根据当前索引切换）
+        // StackLayout 内容
         StackLayout {
             anchors.top: rect2Id.bottom
             anchors.topMargin: 6
@@ -208,49 +183,11 @@ Item {
             anchors.right: parent.right
             currentIndex: labelId.currentIndex
 
-            // 页面1：视频
+            // 视频页
             Item {
-                id:videoItemId
-                property real duration: 0
-                Text {
-                    anchors.centerIn: parent
-                    text: "视频编辑内容"
-                    color: Style.textcolor
-                }
-                property real positionX: 0
-                property real positionY: 0
-                property real scale: 100
-                property real scaleWidth: 100
-                property real scaleHeight: 100
-                property bool uniformScale: true
-                property real rotat: 0
-                property real radius: 0
-                readonly property regexp numberExtractionRegExp1: /^\s*(\d+)\s*%?\s*$/
-                readonly property regexp numberExtractionRegExp2: /^\s*(\d+\.?\d*)\s*°?\s*$/
-
-
-                implicitWidth: parent.width-5
+                id: videoItemId
+                implicitWidth: parent.width - 5
                 implicitHeight: columnLayout.implicitHeight + 24
-
-                onScaleChanged: {
-                    scaleChange(scale)
-                }
-                onPositionXChanged: {
-                    positionXChange(positionX)
-                }
-                onPositionYChanged: {
-                    positionYChange(positionY)
-                }
-                onScaleWidthChanged: {
-                    scaleWidthChange(scaleWidth)
-                }
-                onScaleHeightChanged: {
-                    scaleHeightChange(scaleHeight)
-                }
-                onRotatChanged: {
-                    rotatChange(rotat)
-                }
-
 
                 Rectangle {
                     anchors.fill: parent
@@ -260,14 +197,11 @@ Item {
                     radius: 4
                 }
 
-
-
                 ColumnLayout {
                     id: columnLayout
                     anchors.fill: parent
                     anchors.margins: 12
                     spacing: 10
-
 
                     Label {
                         text: qsTr("位置大小")
@@ -277,9 +211,10 @@ Item {
                         Layout.fillWidth: true
                     }
 
-
+                    // 等比缩放
                     RowLayout {
-                        visible: videoItemId.uniformScale
+                        id: uniformRow
+                        visible: true // 由代码控制
                         spacing: 8
                         Label {
                             text: qsTr("缩放")
@@ -287,109 +222,114 @@ Item {
                             color: Style.textcolor
                             width: 50
                         }
-
                         Slider {
                             id: scaleSliderId
                             from: 1
                             to: 500
                             stepSize: 1
-                            value: videoItemId.scale
                             Layout.fillWidth: true
                             onMoved: {
-                                videoItemId.scale = value
-                                scaleSpinBoxId.value = value
+                                if (currentClip) {
+                                    currentClip.scale = value
+                                    scaleSpinBoxId.value = value // 同步 SpinBox
+                                }
                             }
                         }
-
-                        MSpinBox{
-                            id:scaleSpinBoxId
+                        MSpinBox {
+                            id: scaleSpinBoxId
                             from: 1
-                            to:500
+                            to: 500
                             stepSize: 1
-                            value: videoItemId.scale
                             suffix: "%"
-                            regExp: videoItemId.numberExtractionRegExp1
+                            regExp: /^\s*(\d+)\s*%?\s*$/
                             onValueModified: {
-                                videoItemId.scale = value
-                                scaleSliderId.value = value
+                                if (currentClip) {
+                                    currentClip.scale = value
+                                    scaleSliderId.value = value
+                                }
                             }
                         }
                     }
 
-                    RowLayout{
-                        visible:!videoItemId.uniformScale
-                        Label{
+                    // 非等比缩放宽度
+                    RowLayout {
+                        id: nonUniformWidthRow
+                        visible: false
+                        Label {
                             text: qsTr("缩放宽度")
                             font.pixelSize: Style.fontSizeNormal
                             color: Style.textcolor
                             width: 50
                         }
-                        Slider{
-                            id:scaleWidthSliderId
+                        Slider {
+                            id: scaleWidthSliderId
                             from: 1
                             to: 500
                             stepSize: 1
-                            value:videoItemId.scaleWidth
                             onMoved: {
-                                videoItemId.scaleWidth = value
-                                scaleWidthSpinBoxId.value = value
+                                if (currentClip) {
+                                    currentClip.scaleX = value
+                                    scaleWidthSpinBoxId.value = value
+                                }
                             }
                         }
-
-                        MSpinBox{
-                            id:scaleWidthSpinBoxId
-                            from:1
-                            to:500
+                        MSpinBox {
+                            id: scaleWidthSpinBoxId
+                            from: 1
+                            to: 500
                             stepSize: 1
                             suffix: "%"
-                            value:videoItemId.scaleWidth
-                            regExp: videoItemId.numberExtractionRegExp1
+                            regExp: /^\s*(\d+)\s*%?\s*$/
                             onValueModified: {
-                                videoItemId.scaleWidth = value
-                                scaleWidthSliderId.value = value
+                                if (currentClip) {
+                                    currentClip.scaleX = value
+                                    scaleWidthSliderId.value = value
+                                }
                             }
                         }
-
                     }
 
-                    RowLayout{
-                        visible:!videoItemId.uniformScale
-                        Label{
+                    // 非等比缩放高度
+                    RowLayout {
+                        id: nonUniformHeightRow
+                        visible: false
+                        Label {
                             text: qsTr("缩放高度")
                             font.pixelSize: Style.fontSizeNormal
                             color: Style.textcolor
                             width: 50
                         }
-                        Slider{
-                            id:scaleHeightSliderId
+                        Slider {
+                            id: scaleHeightSliderId
                             from: 1
                             to: 500
                             stepSize: 1
-                            value:videoItemId.scaleHeight
                             onMoved: {
-                                videoItemId.scaleHeight = value
-                                scaleHeightSpinBoxId.value = value
+                                if (currentClip) {
+                                    currentClip.scaleY = value
+                                    scaleHeightSpinBoxId.value = value
+                                }
                             }
                         }
-
-                        MSpinBox{
-                            id:scaleHeightSpinBoxId
-                            from:1
-                            to:500
+                        MSpinBox {
+                            id: scaleHeightSpinBoxId
+                            from: 1
+                            to: 500
                             stepSize: 1
                             suffix: "%"
-                            value:videoItemId.scaleHeight
-                            regExp: videoItemId.numberExtractionRegExp1
+                            regExp: /^\s*(\d+)\s*%?\s*$/
                             onValueModified: {
-                                videoItemId.scaleHeight = value
-                                scaleHeightSliderId.value = value
+                                if (currentClip) {
+                                    currentClip.scaleY = value
+                                    scaleHeightSliderId.value = value
+                                }
                             }
                         }
-
                     }
 
+                    // 等比开关
                     RowLayout {
-                        spacing:50
+                        spacing: 50
                         Label {
                             text: qsTr("等比缩放")
                             font.pixelSize: Style.fontSizeNormal
@@ -398,13 +338,16 @@ Item {
                         }
                         Switch {
                             id: switchId
-                            checked: videoItemId.uniformScale
                             onCheckedChanged: {
-                                videoItemId.uniformScale = checked
+                                if (currentClip) {
+                                    currentClip.uniformScale = checked
+                                    updateUIVisibility() // 切换显示模式
+                                }
                             }
                         }
                     }
 
+                    // 位置
                     RowLayout {
                         spacing: 15
                         Label {
@@ -412,40 +355,37 @@ Item {
                             font.pixelSize: 14
                             color: Style.textcolor
                         }
-                        Label {
-                            text: "X:"
-                            font.pixelSize: 15
-                            color: Style.textcolor
-                        }
+                        Label { text: "X:"; font.pixelSize: 15; color: Style.textcolor }
                         MSpinBox {
                             id: positionXSpinBox
-                            from: 0
-                            value: videoItemId.positionX
+                            from: -1000
+                            to: 1000
                             editable: true
                             implicitWidth: 70
                             font.pixelSize: 12
                             onValueModified: {
-                                videoItemId.positionX = value
+                                if (currentClip) {
+                                    currentClip.offsetX = value
+                                }
                             }
                         }
-                        Label {
-                            text: "Y:"
-                            font.pixelSize: 15
-                            color: Style.textcolor
-                        }
+                        Label { text: "Y:"; font.pixelSize: 15; color: Style.textcolor }
                         MSpinBox {
                             id: positionYSpinBox
-                            from: 0
-                            value: videoItemId.positionY
+                            from: -1000
+                            to: 1000
                             editable: true
                             implicitWidth: 70
                             font.pixelSize: 12
                             onValueModified: {
-                                videoItemId.positionY = value
+                                if (currentClip) {
+                                    currentClip.offsetY = value
+                                }
                             }
                         }
                     }
 
+                    // 旋转
                     RowLayout {
                         spacing: 20
                         Label {
@@ -460,30 +400,21 @@ Item {
                             stepSize: 0.01
                             decimals: 2
                             suffix: "°"
-                            regExp:videoItemId.numberExtractionRegExp2
-                            value: videoItemId.rotat
+                            regExp: /^\s*(\d+\.?\d*)\s*°?\s*$/
                             onValueModified: {
-                                videoItemId.rotat = value
+                                if (currentClip) {
+                                    currentClip.rotation = value
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // 页面2：音频
+            // 音频页
             Item {
-                id:audioItemId
-                property real volume: 0.0
-                readonly property regexp numberExtractionRegExp3: /^\s*(-?\d+\.?\d?)\s*(?:dB)?\s*$/i
-
-                onVolumeChanged: {
-                    volumeChange(volume)
-                }
-
-
-
+                id: audioItemId
                 RowLayout {
-                    visible:true
                     spacing: 8
                     Label {
                         text: qsTr("音量")
@@ -491,142 +422,158 @@ Item {
                         color: Style.textcolor
                         width: 50
                     }
-
                     Slider {
                         id: volumeSliderId
-                        from: -20
-                        to: 20
-                        value: audioItemId.volume
-                        stepSize: 0.1
+                        from: 0
+                        to: 1
+                        stepSize: 0.01
                         Layout.fillWidth: true
-
                         onMoved: {
-                            if (audioItemId.volume !== value) {
-                                audioItemId.volume = value
+                            if (currentClip) {
+                                currentClip.volume = value
+                                volumeSpinBoxId.value = value
                             }
                         }
                     }
-
-                    MDoubleSpinBox{
-                        id:volumeSpinBoxId
-                        from: -20
-                        to: 20
-                        stepSize: 0.1
-                        decimals: 1
-                        value: audioItemId.volume
-                        suffix: "dB"
-                        regExp: audioItemId.numberExtractionRegExp3
+                    MDoubleSpinBox {
+                        id: volumeSpinBoxId
+                        from: 0
+                        to: 1
+                        stepSize: 0.01
+                        decimals: 2
+                        suffix: ""
+                        regExp: /^\s*(\d+\.?\d*)\s*$/
                         onValueModified: {
-                            if (audioItemId.volume !== value) {
-                                audioItemId.volume = value
+                            if (currentClip) {
+                                currentClip.volume = value
+                                volumeSliderId.value = value
                             }
                         }
                     }
-
                 }
-
             }
 
-            // 页面3：变速
+            // 变速页
             Item {
-                id:speedItemId
-                property real speed: 1.00
-                property real duration: totalDuration
-                property real originalDuration: totalDuration
-                ColumnLayout{
-                    anchors.fill:parent
-                    anchors.top:parent.bottom
+                id: speedItemId
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.top: parent.bottom
                     anchors.topMargin: 15
-                    ColumnLayout{
+                    ColumnLayout {
                         spacing: 10
                         Layout.fillWidth: true
-                        MText {
-                            text: "Mulitiple"
-                        }
+                        MText { text: "Mulitiple" }
                         RowLayout {
                             Layout.fillWidth: true
-                            visible:true
                             spacing: 8
                             Slider {
                                 id: mulitipleSliderId
                                 from: 0.1
                                 to: 10
-                                value: speedItemId.speed
                                 stepSize: 0.1
                                 Layout.fillWidth: true
-                                snapMode:Slider.SnapAlways
-
+                                snapMode: Slider.SnapAlways
                                 onMoved: {
-                                    speedItemId.speed = value
-                                    mulitipleSpinBoxId.value= value
-
-
+                                    if (currentClip) {
+                                        currentClip.speed = value
+                                        mulitipleSpinBoxId.value = value
+                                    }
                                 }
                             }
-                            MDoubleSpinBox{
-                                id:mulitipleSpinBoxId
-                                from:0.1
-                                to:100
-                                stepSize:0.1
-                                value: speedItemId.speed
+                            MDoubleSpinBox {
+                                id: mulitipleSpinBoxId
+                                from: 0.1
+                                to: 100
+                                stepSize: 0.1
                                 suffix: "x"
-                                regExp:/^\s*(-?\d+\.?\d{0,2})\s*(?:x)?\s*$/i
+                                regExp: /^\s*(-?\d+\.?\d{0,2})\s*(?:x)?\s*$/i
                                 onValueModified: {
-                                    speedItemId.speed = value
-                                    mulitipleSliderId.value = value
-
+                                    if (currentClip) {
+                                        currentClip.speed = value
+                                        mulitipleSliderId.value = value
+                                    }
                                 }
                             }
                         }
                     }
-                    ColumnLayout{
+                    ColumnLayout {
                         spacing: 10
                         Layout.fillWidth: true
-                        ColumnLayout{
-                            spacing: 10
-                            Layout.fillWidth: true
-                            MText{
-                                text:"Duration"
-                            }
-                            RowLayout{
-                                MText{
-                                    text: speedItemId.originalDuration.toFixed(2) + "s"
-                                }
-                                MDoubleSpinBox{
-                                    id:durationSpinBoxId
-                                    from:speedItemId.originalDuration/100
-                                    to:speedItemId.originalDuration*10
-                                    stepSize:0.1
-                                    value: speedItemId.duration
-                                    suffix: "s"
-                                    regExp: /^\s*(\d+\.?\d*)\s*$/
-                                    onValueModified: {
-                                        var newSpeed = speedItemId.originalDuration / value
+                        MText { text: "Duration" }
+                        RowLayout {
+                            MText { id: durationDisplay; text: "0.00s" }
+                            MDoubleSpinBox {
+                                id: durationSpinBoxId
+                                from: 0.01
+                                to: 1000
+                                stepSize: 0.1
+                                suffix: "s"
+                                regExp: /^\s*(\d+\.?\d*)\s*$/
+                                onValueModified: {
+                                    if (currentClip) {
+                                        var newSpeed = currentClip.duration / value
                                         if (newSpeed < 0.1) newSpeed = 0.1
                                         if (newSpeed > 100) newSpeed = 100
+                                        currentClip.speed = newSpeed
+                                        // 更新其他控件
+                                        mulitipleSliderId.value = newSpeed
+                                        mulitipleSpinBoxId.value = newSpeed
                                     }
                                 }
                             }
                         }
                     }
                 }
-                onSpeedChanged: {
-                    if(!currentClip)return
-                    var newDuration = totalDuration/speed
-                    speedItemId.duration = newDuration
-                    speedChange(speed)
-                }
             }
-
-
-
         }
     }
+
+    function updateUI() {
+        if (!currentClip) return
+
+        // 视频参数
+        scaleSliderId.value = currentClip.scale
+        scaleSpinBoxId.value = currentClip.scale
+        scaleWidthSliderId.value = currentClip.scaleX
+        scaleWidthSpinBoxId.value = currentClip.scaleX
+        scaleHeightSliderId.value = currentClip.scaleY
+        scaleHeightSpinBoxId.value = currentClip.scaleY
+        positionXSpinBox.value = currentClip.offsetX
+        positionYSpinBox.value = currentClip.offsetY
+        rotationSpinBox.value = currentClip.rotation
+        switchId.checked = currentClip.uniformScale
+
+        // 音频
+        volumeSliderId.value = currentClip.volume
+        volumeSpinBoxId.value = currentClip.volume
+
+        // 变速
+        mulitipleSliderId.value = currentClip.speed
+        mulitipleSpinBoxId.value = currentClip.speed
+        durationDisplay.text = currentClip.duration.toFixed(2) + "s"
+        durationSpinBoxId.value = currentClip.duration / currentClip.speed
+        durationSpinBoxId.from = currentClip.duration / 100
+        durationSpinBoxId.to = currentClip.duration * 10
+
+        updateUIVisibility()
+    }
+
+    function updateUIVisibility() {
+        if (!currentClip) return
+        uniformRow.visible = currentClip.uniformScale
+        nonUniformWidthRow.visible = !currentClip.uniformScale
+        nonUniformHeightRow.visible = !currentClip.uniformScale
+    }
+
+    // 设置当前剪辑信息，更新 UI
     function setClipInfo(clip) {
         infoItemId.visible = false
         labelId.visible = true
         currentClip = clip
-        totalDuration = clip.duration
+        if (clip) {
+            totalDuration = clip.duration
+            updateUI()
+        }
     }
-
 }
