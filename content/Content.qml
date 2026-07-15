@@ -18,6 +18,7 @@ Item {
 
     property var clip:[]
     property int clipCount: 0
+    property alias timelineArea: timelineAreaId
 
     RowLayout{
         anchors.fill: parent
@@ -69,7 +70,6 @@ Item {
                 visible: !previewFullscreen
                 materialModel: materialBin.materialModel
                 onTotalDurationChanged: {
-                    clipCount = clips.length
                     videoPreview.totalDuration = totalDuration*1000
                 }
             }
@@ -152,6 +152,7 @@ Item {
             timelineAreaId.redo()
         })
         timelineAreaId.timelineDataUpdated.connect(function(updatedClips, duration, seekTime) {
+            clipCount = updatedClips ? updatedClips.length : 0
             if (updatedClips && updatedClips.length > 0) {
                 videoPreview.setTimeLineMedia(updatedClips, duration, seekTime, false)
             } else {

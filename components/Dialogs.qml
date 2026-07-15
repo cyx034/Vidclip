@@ -41,7 +41,7 @@ Item{
             height: 24
             font.pixelSize: 16
             font.bold: true
-            z: 10   //确保在最上层
+            z: 10
             background: Rectangle {
                 color: parent.hovered ? Style.highlight : Style.d_button
                 radius: 4
@@ -109,7 +109,7 @@ Item{
                 contentItem: ListView {
                     clip: true
                     implicitHeight: contentHeight
-                    model: combox.model          // 使用 id 引用
+                    model: combox.model
                     currentIndex: combox.currentIndex
                     delegate: ItemDelegate {
                         width: parent.width
@@ -124,8 +124,6 @@ Item{
                         background: Rectangle {
                             color: highlighted ? Style.highlight : Style.surface
                         }
-
-                        //点击时更新 ComboBox 的 currentIndex
                         onClicked: {
                             combox.currentIndex = index
                             combox.popup.close()
@@ -135,7 +133,6 @@ Item{
             }
         }
 
-        //默认设置
         property string exportFormat: "mp4"
         property string resolution: "original"
         property int frameRate: 30
@@ -152,7 +149,6 @@ Item{
             anchors.fill: parent
             spacing: 0
 
-            //自定义标题栏
             Rectangle {
                 id: titleBar
                 Layout.fillWidth: true
@@ -176,14 +172,12 @@ Item{
                 }
             }
 
-            //内容区域
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 spacing: 15
                 anchors.margins: 20
 
-                //左列：封面编辑
                 ColumnLayout {
                     Layout.preferredWidth:200
                     Layout.fillHeight: true
@@ -207,7 +201,7 @@ Item{
                     }
 
                     MButton {
-                        text: "Edit cover"  //编辑封面
+                        text: "Edit cover"
                         Layout.alignment: Qt.AlignHCenter
                         onClicked: {
                             exportDialog.visible = false
@@ -216,8 +210,6 @@ Item{
                     }
                 }
 
-
-                //右列：导出设置
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -225,17 +217,38 @@ Item{
                     spacing: 12
 
                     Text {
-                        text: qsTr("Export Settings")  //导出设置
+                        text: qsTr("Export Settings")
                         font.pixelSize: 18
                         font.bold: true
                         color: Style.textcolor
                     }
 
-                    //保存位置
+                    Text {
+                        text: qsTr("Title")
+                        font.pixelSize: 14
+                        font.bold: true
+                        color: Style.textcolor
+                        Layout.topMargin: 10
+                    }
+
+                    TextField {
+                        id: titleField
+                        Layout.fillWidth: true
+                        placeholderText: "My Videos"
+                        text: "My Videos"
+                        color: Style.textcolor
+                        background: Rectangle {
+                            color: Style.d_button
+                            border.color: Style.border
+                            border.width: 1
+                            radius: 4
+                        }
+                    }
+
                     GroupBox {
                         Layout.fillWidth: true
                         label: Text {
-                            text: qsTr("Save As")   //保存至
+                            text: qsTr("Save As")
                             color: Style.textcolor
                             font.pixelSize: 14
                         }
@@ -251,9 +264,9 @@ Item{
                                 TextField {
                                     id: savePathField
                                     Layout.fillWidth: true
-                                    placeholderText: "Select The Storage Location"   //选择保存的位置
+                                    placeholderText: "Select The Storage Location"
                                     color: Style.textcolor
-                                    placeholderTextColor: Style.textcolor  //占位符颜色
+                                    placeholderTextColor: Style.textcolor
                                     background: Rectangle {
                                         color: Style.d_button
                                         border.color: Style.border
@@ -263,14 +276,13 @@ Item{
                                 }
 
                                 MButton {
-                                    text: "Browse"  //浏览
+                                    text: "Browse"
                                     onClicked: folderDialog.open()
                                 }
                             }
                         }
                     }
 
-                    //视频导出设置
                     GroupBox {
                         Layout.fillWidth: true
                         label: Text {
@@ -285,7 +297,7 @@ Item{
                             rowSpacing: 10
                             columnSpacing: 15
 
-                            Text { text: "Format:"; color: Style.textcolor }  //格式
+                            Text { text: "Format:"; color: Style.textcolor }
                             MComboBox {
                                 id: formatCombo
                                 model: ["MP4", "MOV", "AVI", "MKV"]
@@ -293,7 +305,7 @@ Item{
                                 onCurrentTextChanged: exportDialog.exportFormat = currentText.toLowerCase()
                             }
 
-                            Text { text: "Resolution Ratio:"; color: Style.textcolor }   //分辨率
+                            Text { text: "Resolution Ratio:"; color: Style.textcolor }
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: 5
@@ -319,8 +331,7 @@ Item{
                                 }
                             }
 
-
-                            Text { text: "Encoder:"; color: Style.textcolor }  //编码器
+                            Text { text: "Encoder:"; color: Style.textcolor }
                             MComboBox {
                                 id: encoderCombo
                                 model: ["H.264", "H.265", "VP9"]
@@ -328,7 +339,7 @@ Item{
                                 onCurrentTextChanged: exportDialog.encoder = currentText
                             }
 
-                            Text { text: "Quality:"; color: Style.textcolor }  //质量
+                            Text { text: "Quality:"; color: Style.textcolor }
                             RowLayout {
                                 Layout.fillWidth: true
                                 MComboBox {
@@ -344,7 +355,7 @@ Item{
                                 }
                             }
 
-                            Text { text: "Frame Rate:"; color: Style.textcolor }  //帧率
+                            Text { text: "Frame Rate:"; color: Style.textcolor }
                             RowLayout {
                                 Layout.fillWidth: true
                                 MComboBox {
@@ -356,7 +367,7 @@ Item{
                                 Text { text: "fps"; color: Style.textcolor }
                             }
 
-                            Text { text: "Code Rate:"; color: Style.textcolor }  //码率
+                            Text { text: "Code Rate:"; color: Style.textcolor }
                             RowLayout {
                                 Layout.fillWidth: true
                                 Slider {
@@ -377,7 +388,6 @@ Item{
                         }
                     }
 
-                    //预估信息
                     Rectangle {
                         Layout.fillWidth: true
                         height: 50
@@ -392,7 +402,7 @@ Item{
                             spacing: 15
 
                             Text {
-                                text: "Duration:"   //时长
+                                text: "Duration:"
                                 color: Style.textcolor
                                 font.pixelSize: 12
                             }
@@ -423,19 +433,22 @@ Item{
             }
         }
 
-        FileDialog {
+        FolderDialog {
             id: folderDialog
-            title: "Select The Storage Location"   //选择保存位置
-            fileMode: FileDialog.Directory
+            title: "Select The Storage Location"
             onAccepted: {
-                if (selectedFile) {
-                    exportDialog.savePath = selectedFile.toString()
-                    savePathField.text = exportDialog.savePath
+                if (folderDialog.selectedFolder) {
+                    var dirPath = folderDialog.selectedFolder.toString()
+                    if (dirPath.startsWith("file://")) dirPath = dirPath.substring(7)
+                    var title = titleField.text.trim()
+                    if (title === "") title = "export"
+                    var fullPath = dirPath + "/" + title + "." + exportDialog.exportFormat
+                    exportDialog.savePath = fullPath
+                    savePathField.text = fullPath
                 }
             }
         }
 
-        //确认逻辑
         onAccepted: {
             let settings = {
                 format: exportDialog.exportFormat,
@@ -446,13 +459,13 @@ Item{
                 encoder: exportDialog.encoder,
                 saveToCloud: exportDialog.saveToCloud,
                 coverPath: exportDialog.coverPath,
-                savePath: savePathField.text
+                savePath: savePathField.text,
+                title: titleField.text
             }
             exportWithSettings(settings)
         }
     }
 
-    //子对话框
     Dialog {
         id: coverSelectorId
         title: ""
@@ -465,9 +478,8 @@ Item{
             border.color:Style.border
         }
 
-        //临时封面路径
         property string tempCoverPath: ""
-        property var timelineArea: null  //引用时间轴
+        property var timelineArea: null
 
         header: Rectangle {
             height: 40
@@ -486,7 +498,6 @@ Item{
             spacing: 15
             anchors.margins: 15
 
-            //封面预览
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 120
@@ -503,7 +514,6 @@ Item{
                 }
             }
 
-            //导入按钮
             Button {
                 text: "Import From The Local Area"
                 Layout.fillWidth: true
@@ -542,7 +552,6 @@ Item{
                 }
             }
 
-            //右下角按钮行
             RowLayout {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignRight
@@ -598,10 +607,9 @@ Item{
             exportDialog.visible = true
         }
 
-
         FileDialog {
             id: coverImageId
-            title: "Select The Cover Image"   //选择封面图片
+            title: "Select The Cover Image"
             fileMode: FileDialog.OpenFile
             nameFilters: ["图片文件 (*.jpg *.png *.jpeg)", "所有文件 (*)"]
 
@@ -628,14 +636,13 @@ Item{
             color: Style.background
         }
 
-        // 自定义标题栏
         Rectangle {
             id: titleId
             width: parent.width
             height: 40
             color: Style.surface
             border.color: Style.border
-            border.width: 1   // 仅底部边框
+            border.width: 1
 
             RowLayout {
                 anchors.fill: parent
@@ -653,7 +660,6 @@ Item{
             }
         }
 
-        // 主内容区域
         ColumnLayout {
             anchors.top: titleId.bottom
             anchors.left: parent.left
@@ -662,7 +668,6 @@ Item{
             anchors.margins: 20
             spacing: 15
 
-            // 软件图标 + 版本
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 15
@@ -690,7 +695,6 @@ Item{
                 }
             }
 
-            // 技术栈信息
             GridLayout {
                 Layout.fillWidth: true
                 columns: 2

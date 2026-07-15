@@ -11,7 +11,6 @@ ApplicationWindow {
     visible: true
     title: qsTr("MediaPlayer")
 
-    // 预创建对话框
     Dialogs {
         id: dialogs
         anchors.fill: parent
@@ -42,7 +41,6 @@ ApplicationWindow {
 
     menuBar:MenuBar {
         background: Rectangle {
-
             color: Style.surface
             border.color: Style.border
             border.width: 1
@@ -116,7 +114,6 @@ ApplicationWindow {
         id:contentItem
     }
 
-    //全局右键菜单
     Menu {
         id: globalRightMenu
 
@@ -180,18 +177,83 @@ ApplicationWindow {
         }
     }
 
-    // 信号连接
     Component.onCompleted: {
+        Qt.uiLanguage = "en_Us"
         Actions.aboutRequested.connect(function() {
             dialogs._aboutDialog.open()
         })
         Actions.exportRequested.connect(function() {
             exportCurrentMedia()
         })
-        Qt.uiLanguage = "en_US"
+
+        dialogs._exportDialog.exportWithSettings.connect(function(settings) {
+            if (contentItem.clipCount <= 0) {
+                dialogs._noExportDialog.open()
+                return
+            }
+
+            var timeline = contentItem.timelineArea
+            if (!timeline) {
+                console.error("无法获取时间轴对象")
+                return
+            }
+
+            var clipList = timeline.buildClipsFromModel()
+            if (!clipList || clipList.length === 0) {
+                console.warn("无剪辑数据")
+                return
+            }
+
+            var clipsData = []
+            for (var i = 0; i < clipList.length; i++) {
+                var c = clipList[i]
+                var clip = c.videoClip
+                if (!clip) continue
+                clipsData.push({
+                    "source": clip.source.filePath,
+                    "start": clip.sourceOffset,
+                    "end": clip.sourceOffset + clip.duration,
+                    "timeLineStart": clip.timelineStart,
+                    "speed": clip.speed,
+                    "volume": clip.volume,
+                    "scaleX": clip.scaleX,
+                    "scaleY": clip.scaleY,
+                    "rotation": clip.rotation,
+                    "offsetX": clip.offsetX,
+                    "offsetY": clip.offsetY
+                })
+            }
+
+            // ========== 直接使用 settings.savePath 作为完整输出路径 ==========
+            var outputPath = settings.savePath
+            if (outputPath.startsWith("file://")) outputPath = outputPath.substring(7)
+
+            var exporter = Qt.createQmlObject(
+                'import Vidclip 1.0; VideoExporter {}',
+                contentItem,
+                "dynamicExporter"
+            )
+            if (!exporter) {
+                console.error("创建 VideoExporter 失败")
+                return
+            }
+
+            exporter.progressChanged.connect(function(percent) {
+                console.log("导出进度:", percent + "%")
+            })
+            exporter.exportFinished.connect(function(path) {
+                console.log("导出成功:", path)
+                exporter.destroy()
+            })
+            exporter.exportFailed.connect(function(error) {
+                console.error("导出失败:", error)
+                exporter.destroy()
+            })
+
+            exporter.exportTimeline(clipsData, settings, outputPath)
+        })
     }
 
-    // 导出入口函数：检查媒体是否存在，然后打开导出设置对话框
     function exportCurrentMedia() {
         if (contentItem.clipCount > 0) {
             dialogs._exportDialog.open()
@@ -199,5 +261,5 @@ ApplicationWindow {
             dialogs._noExportDialog.open()
         }
     }
-
 }
+
