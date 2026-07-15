@@ -151,6 +151,9 @@ Item {
         Actions.redoRequested.connect(function() {
             timelineAreaId.redo()
         })
+        Actions.copyRequested.connect(function() {
+            timelineAreaId.copySelectedClip()
+        })
         timelineAreaId.timelineDataUpdated.connect(function(updatedClips, duration, seekTime) {
             clipCount = updatedClips ? updatedClips.length : 0
             if (updatedClips && updatedClips.length > 0) {

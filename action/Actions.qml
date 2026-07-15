@@ -13,6 +13,7 @@ Item{
     signal deleteRequested()
     signal undoRequested()
     signal redoRequested()
+    signal copyRequested()
 
 
     property alias _import: _import
@@ -26,6 +27,7 @@ Item{
     property alias trim_left:trim_left
     property alias trim_right: trim_right
     property alias _delete: _delete
+    property alias _copy: _copy
 
     Action {
         id:_import
@@ -118,6 +120,15 @@ Item{
         icon.color: Style.textcolor
         onTriggered: {
             deleteRequested()
+        }
+    }
+    Action{
+        id:_copy
+        icon.name: "edit-copy"
+        icon.color: Style.textcolor
+        shortcut: StandardKey.Copy
+        onTriggered: {
+            copyRequested()
         }
     }
 

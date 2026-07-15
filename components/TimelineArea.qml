@@ -95,9 +95,11 @@ Item {
             MToolButton{
                 id:deleteButton
                 action: Actions._delete
-
             }
-
+            MToolButton{
+                id:copyButton
+                action: Actions._copy
+            }
         }
         Button {
             anchors.right: parent.right
@@ -734,6 +736,53 @@ Item {
         undoStack = []
         redoStack = []
         updateUndoButtons()
+    }
+    function copySelectedClip() {
+        let index = timeThumbnailViewId.currentIndex
+        if (index < 0 || index >= clipModel.count) {
+            console.warn("请先在时间轴上点击选中一个剪辑")
+            return
+        }
+        let sourceClip = clipModel.get(index).source
+        if (!sourceClip) {
+            console.warn("无效剪辑对象")
+            return
+        }
+        pushUndoState()
+        let helper = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
+        let newClip = helper.fromMediaSource(sourceClip.source)
+        helper.destroy()
+        if (!newClip) {
+            console.warn("创建剪辑副本失败")
+            return
+        }
+        newClip.sourceOffset = sourceClip.sourceOffset
+        newClip.duration = sourceClip.duration
+        newClip.speed = sourceClip.speed
+        newClip.scale = sourceClip.scale
+        newClip.scaleX = sourceClip.scaleX
+        newClip.scaleY = sourceClip.scaleY
+        newClip.offsetX = sourceClip.offsetX
+        newClip.offsetY = sourceClip.offsetY
+        newClip.rotation = sourceClip.rotation
+        newClip.volume = sourceClip.volume
+        newClip.uniformScale = sourceClip.uniformScale
+        let originalEnd = sourceClip.timelineStart + sourceClip.duration / sourceClip.speed
+        newClip.timelineStart = originalEnd
+        newClip.extractPreview()
+        clipModel.insert(index + 1, { "source": newClip })
+        let insertedDuration = newClip.duration / newClip.speed
+        for (let i = index + 2; i < clipModel.count; i++) {
+            let nextClip = clipModel.get(i).source
+            if (!nextClip) continue
+            nextClip.timelineStart = nextClip.timelineStart + insertedDuration
+        }
+        updateTotalDuration()
+        timeThumbnailViewId.currentIndex = index + 1
+        let seekTime = newClip.timelineStart
+        setPointerPosition(seekTime)
+        syncDataToPreview(seekTime)
+        clipInformation(newClip)
     }
 }
 
