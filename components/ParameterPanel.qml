@@ -44,7 +44,7 @@ Item {
             anchors.leftMargin: 10
             anchors.top: parent.top
             anchors.topMargin: 6
-            text: "ItemInfomation"
+            text:qsTr( "ItemInfomation")
             font.pixelSize: 16
             font.bold: true
             color: Style.textcolor
@@ -69,17 +69,17 @@ Item {
             columns: 2
             columnSpacing: 10
             rowSpacing: 2
-            MText { text: "ProjectName: ";  }
+            MText { text: qsTr("ProjectName: ");  }
             MText { text: infoItemId._projectName; }
-            MText { text: "ProjectFileLocation: "; }
+            MText { text: qsTr("ProjectFileLocation: "); }
             MText { text: infoItemId._projectFileLocation; }
-            MText { text: "Ratio: "; }
+            MText { text: qsTr("Ratio: "); }
             MText { text: infoItemId._ratio; }
-            MText { text: "Resolution: "; }
+            MText { text: qsTr("Resolution: "); }
             MText { text: infoItemId._resolution; }
-            MText { text: "FrameRate: "; }
+            MText { text: qsTr("FrameRate: "); }
             MText { text: infoItemId._frameRate; }
-            MText { text: "Duration: "; }
+            MText { text: qsTr("Duration: "); }
             MText { id: durationId; text: infoItemId._duration; }
         }
 
@@ -111,7 +111,7 @@ Item {
             anchors.topMargin: 6
             spacing: 20
             Repeater {
-                model: ["Video", "Audio", "Speed"]
+                model: [qsTr("Video"), qsTr("Audio"),qsTr( "Speed")]
                 Text {
                     text: modelData
                     font.pixelSize: 16
@@ -204,7 +204,7 @@ Item {
                     spacing: 10
 
                     Label {
-                        text: qsTr("位置大小")
+                        text: qsTr("Position size")
                         font.pixelSize: 14
                         font.bold: true
                         color: Style.textcolor
@@ -217,7 +217,7 @@ Item {
                         visible: true // 由代码控制
                         spacing: 8
                         Label {
-                            text: qsTr("缩放")
+                            text: qsTr("Scale")
                             font.pixelSize: Style.fontSizeNormal
                             color: Style.textcolor
                             width: 50
@@ -256,7 +256,7 @@ Item {
                         id: nonUniformWidthRow
                         visible: false
                         Label {
-                            text: qsTr("缩放宽度")
+                            text: qsTr("Scale Width")
                             font.pixelSize: Style.fontSizeNormal
                             color: Style.textcolor
                             width: 50
@@ -294,7 +294,7 @@ Item {
                         id: nonUniformHeightRow
                         visible: false
                         Label {
-                            text: qsTr("缩放高度")
+                            text: qsTr("Scale height")
                             font.pixelSize: Style.fontSizeNormal
                             color: Style.textcolor
                             width: 50
@@ -331,7 +331,7 @@ Item {
                     RowLayout {
                         spacing: 50
                         Label {
-                            text: qsTr("等比缩放")
+                            text: qsTr("Scale uniformly")
                             font.pixelSize: Style.fontSizeNormal
                             color: Style.textcolor
                             width: 50
@@ -351,7 +351,7 @@ Item {
                     RowLayout {
                         spacing: 15
                         Label {
-                            text: qsTr("位置")
+                            text: qsTr("Position")
                             font.pixelSize: 14
                             color: Style.textcolor
                         }
@@ -389,7 +389,7 @@ Item {
                     RowLayout {
                         spacing: 20
                         Label {
-                            text: qsTr("旋转")
+                            text: qsTr("Rotation")
                             font.pixelSize: 14
                             color: Style.textcolor
                         }
@@ -417,7 +417,7 @@ Item {
                 RowLayout {
                     spacing: 8
                     Label {
-                        text: qsTr("音量")
+                        text: qsTr("Volume")
                         font.pixelSize: Style.fontSizeNormal
                         color: Style.textcolor
                         width: 50
@@ -463,7 +463,7 @@ Item {
                     ColumnLayout {
                         spacing: 10
                         Layout.fillWidth: true
-                        MText { text: "Mulitiple" }
+                        MText { text:qsTr( "Mulitiple") }
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 8
@@ -500,7 +500,7 @@ Item {
                     ColumnLayout {
                         spacing: 10
                         Layout.fillWidth: true
-                        MText { text: "Duration" }
+                        MText { text: qsTr("Duration") }
                         RowLayout {
                             MText { id: durationDisplay; text: "0.00s" }
                             MDoubleSpinBox {

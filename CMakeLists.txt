@@ -3,6 +3,7 @@ set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
 set(CMAKE_CXX_MODULE_STD ON)
 
 project(Vidclip VERSION 0.1 LANGUAGES CXX)
+find_package(Qt6 6.10 REQUIRED COMPONENTS Quick LinguistTools)#
 
 find_package(Qt6 REQUIRED COMPONENTS Quick)
 qt_standard_project_setup(REQUIRES 6.10)
@@ -13,7 +14,7 @@ set(QML_IMPORT_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "" FORCE)
 find_package(Qt6 REQUIRED COMPONENTS Quick)
 
 qt_add_executable(appVidclip  WIN32)
-
+qt_standard_project_setup(REQUIRES 6.5 I18N_TRANSLATED_LANGUAGES zh_CN)#
 qt_add_resources(appVidclip "images"
     PREFIX "/"
     FILES
@@ -54,7 +55,11 @@ qt_add_qml_module(appVidclip
     RESOURCES
 
 )
-
+qt_add_translations(appVidclip
+    TS_FILE_BASE qml
+    TS_FILE_DIR i18n
+    RESOURCE_PREFIX /qt/qml/Vidclip/i18n
+)#####
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FFMPEG REQUIRED libavcodec libavformat libavutil libswscale)
 target_include_directories(appVidclip PRIVATE

@@ -18,7 +18,6 @@ Item{
     property alias _import: _import
     property alias _export: _export
     property alias quit: _quit
-    property alias language: _language
     property alias about: _about
 
     property alias _undo: _undo
@@ -53,13 +52,6 @@ Item{
         icon.name: "application-exit"
         shortcut: StandardKey.Quit
         onTriggered: Qt.quit();
-    }
-
-    Action {
-        id:_language
-        text: qsTr("Language")
-        icon.name: "globe"
-        icon.color: Style.textcolor
     }
 
     Action {

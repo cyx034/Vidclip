@@ -567,34 +567,28 @@ Item {
             return
         }
         pushUndoState()
-
         let deletedClip = clipModel.get(index).source
-        let deletedDuration = deletedClip.duration
-
+        let deletedDuration = deletedClip.duration / deletedClip.speed
         clipModel.remove(index)
-
         for (let i = index; i < clipModel.count; i++) {
             let nextClip = clipModel.get(i).source
             if (!nextClip) continue
             nextClip.timelineStart = nextClip.timelineStart - deletedDuration
             if (nextClip.timelineStart < 0) nextClip.timelineStart = 0
         }
-
         updateTotalDuration()
         timeThumbnailViewId.currentIndex = -1
-
         if (clipModel.count === 0) {
             timelineDataUpdated([], 0, 0)
             setPointerPosition(0)
             seekRequested(0)
             return
         }
-
         var seekTime = 0
         if (index > 0 && (index - 1) < clipModel.count) {
             let preClip = clipModel.get(index - 1).source
             if (preClip) {
-                seekTime = preClip.timelineStart + preClip.duration
+                seekTime = preClip.timelineStart + preClip.duration / preClip.speed
             } else {
                 seekTime = 0
             }
@@ -606,7 +600,6 @@ Item {
                 seekTime = 0
             }
         }
-
         setPointerPosition(seekTime)
         syncDataToPreview(seekTime)
     }
@@ -621,24 +614,38 @@ Item {
     }
 
     function saveClipState() {
-        var state = []
+        var clipsData = []
         for (var i = 0; i < clipModel.count; i++) {
             var clip = clipModel.get(i).source
-            state.push({
+            clipsData.push({
                 source: clip.source ? clip.source.filePath : "",
                 sourceOffset: clip.sourceOffset,
                 duration: clip.duration,
-                timelineStart: clip.timelineStart
+                timelineStart: clip.timelineStart,
+                speed: clip.speed,
+                scale: clip.scale,
+                scaleX: clip.scaleX,
+                scaleY: clip.scaleY,
+                offsetX: clip.offsetX,
+                offsetY: clip.offsetY,
+                rotation: clip.rotation,
+                volume: clip.volume,
+                uniformScale: clip.uniformScale
             })
         }
-        return state
+        return {
+            clips: clipsData,
+            _pointerTime: (timePointerId.x - 3) / pixelsPerSecond
+        }
     }
 
     function restoreClipState(state) {
+        var pointerTime = state._pointerTime || 0
+        var clipsData = state.clips || []
         clipModel.clear()
         clips = []
-        for (var i = 0; i < state.length; i++) {
-            var s = state[i]
+        for (var i = 0; i < clipsData.length; i++) {
+            var s = clipsData[i]
             var mediaSource = null
             if (materialModel) {
                 for (var j = 0; j < materialModel.count; j++) {
@@ -656,34 +663,42 @@ Item {
                 clip.sourceOffset = s.sourceOffset
                 clip.duration = s.duration
                 clip.timelineStart = s.timelineStart
+                clip.speed = s.speed !== undefined ? s.speed : 1.0
+                clip.scale = s.scale !== undefined ? s.scale : 100.0
+                clip.scaleX = s.scaleX !== undefined ? s.scaleX : 100.0
+                clip.scaleY = s.scaleY !== undefined ? s.scaleY : 100.0
+                clip.offsetX = s.offsetX !== undefined ? s.offsetX : 0.0
+                clip.offsetY = s.offsetY !== undefined ? s.offsetY : 0.0
+                clip.rotation = s.rotation !== undefined ? s.rotation : 0.0
+                clip.volume = s.volume !== undefined ? s.volume : 1.0
+                clip.uniformScale = s.uniformScale !== undefined ? s.uniformScale : true
                 clip.extractPreview()
-
                 clipModel.append({ "source": clip })
-
                 clips.push({
                     source: "file://" + clip.source.filePath,
                     start: clip.sourceOffset,
                     end: clip.sourceOffset + clip.duration,
-                    timeLineStart: clip.timelineStart
+                    timeLineStart: clip.timelineStart,
+                    videoClip: clip
                 })
             }
         }
-
         updateTotalDuration()
+        return pointerTime
     }
 
     function undo() {
         if (undoStack.length === 0) return
         redoStack.push(saveClipState())
         var state = undoStack.pop()
-        restoreClipState(state)
+        var pointerTime = restoreClipState(state)
         updateUndoButtons()
         if (clipModel.count > 0) {
-            var firstClip = clipModel.get(0).source
-            var seekTime = firstClip ? firstClip.timelineStart : 0
-            timelineDataUpdated(clips, totalDuration, seekTime)
-            setPointerPosition(seekTime)
-            seekRequested(seekTime)
+            if (pointerTime > totalDuration) pointerTime = totalDuration
+            if (pointerTime < 0) pointerTime = 0
+            timelineDataUpdated(clips, totalDuration, pointerTime)
+            setPointerPosition(pointerTime)
+            seekRequested(pointerTime)
         } else {
             timelineDataUpdated([], 0, 0)
             setPointerPosition(0)
@@ -695,14 +710,14 @@ Item {
         if (redoStack.length === 0) return
         undoStack.push(saveClipState())
         var state = redoStack.pop()
-        restoreClipState(state)
+        var pointerTime = restoreClipState(state)
         updateUndoButtons()
         if (clipModel.count > 0) {
-            var firstClip = clipModel.get(0).source
-            var seekTime = firstClip ? firstClip.timelineStart : 0
-            timelineDataUpdated(clips, totalDuration, seekTime)
-            setPointerPosition(seekTime)
-            seekRequested(seekTime)
+            if (pointerTime > totalDuration) pointerTime = totalDuration
+            if (pointerTime < 0) pointerTime = 0
+            timelineDataUpdated(clips, totalDuration, pointerTime)
+            setPointerPosition(pointerTime)
+            seekRequested(pointerTime)
         } else {
             timelineDataUpdated([], 0, 0)
             setPointerPosition(0)

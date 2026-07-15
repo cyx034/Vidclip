@@ -80,27 +80,24 @@ ApplicationWindow {
             MMenuItem{action:Actions.quit}
         }
 
-        /*Menu {
-            title: qsTr("Edit")
-            delegate: MenuItem {
-                contentItem: Text { text: parent.text; color: Style.textcolor}
-                background: Rectangle { color: parent.highlighted ? Style.highlight :  Style.surface}
-            }
-            Action { text: qsTr("revocation") }
-            Action { text: qsTr("recover") }
-            Action { text: qsTr("copy") }
-            Action { text: qsTr("shear") }
-            Action { text: qsTr("paste") }
-            Action { text: qsTr("delete") }
-        }*/
-
         Menu {
-            title: qsTr("Setting")
+            title: qsTr("Language")
             delegate: MenuItem {
                 contentItem: Text { text: parent.text; color: Style.textcolor }
                 background: Rectangle { color: parent.highlighted ? Style.highlight : Style.surface }
             }
-            MMenuItem{action:Actions.language}
+            MMenuItem{
+                text:"Chinese(中文)"
+                onTriggered:{
+                    Qt.uiLanguage = "zh_CN"
+                }
+            }
+            MMenuItem{
+                text: "English(英文)"
+                onTriggered:{
+                    Qt.uiLanguage = "en_Us"
+                }
+            }
         }
 
         Menu {
@@ -137,10 +134,23 @@ ApplicationWindow {
                 Actions._export.trigger()
             }
         }
-        MMenuItem {
-            contentItem: Text{text: "Language"; color:Style.textcolor}
-            onTriggered: {
-
+        Menu {
+            title: qsTr("Language")
+            delegate: MenuItem {
+                contentItem: Text { text: parent.text; color: Style.textcolor }
+                background: Rectangle { color: parent.highlighted ? Style.highlight : Style.surface }
+            }
+            MMenuItem{
+                text:"Chinese(中文)"
+                onTriggered:{
+                    Qt.uiLanguage = "zh_CN"
+                }
+            }
+            MMenuItem{
+                text: "English(英文)"
+                onTriggered:{
+                    Qt.uiLanguage = "en_Us"
+                }
             }
         }
         MMenuItem {
@@ -178,6 +188,7 @@ ApplicationWindow {
         Actions.exportRequested.connect(function() {
             exportCurrentMedia()
         })
+        Qt.uiLanguage = "en_US"
     }
 
     // 导出入口函数：检查媒体是否存在，然后打开导出设置对话框
