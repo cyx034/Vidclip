@@ -131,7 +131,7 @@ Item {
                     sourcePosition = Math.max(clip.start * 1000, Math.min(sourcePosition, clip.end * 1000))
 
                     pendingPosition = sourcePosition
-                    pendingPlay = autoPlay   // 关键修正：使用传入参数
+                    pendingPlay = autoPlay   //使用传入参数
                 }
 
                 onPositionChanged: function(position) {
@@ -173,7 +173,7 @@ Item {
                                 let newSource = nextClip.source
                                 if (String(timeLineMediaPlayer.source) === String(newSource)) {
                                     timeLineMediaPlayer.position = nextClip.start * 1000
-                                    // 根据当前播放状态决定是否播放
+                                    //根据当前播放状态决定是否播放
                                     if (playId.isplay) {
                                         timeLineMediaPlayer.play()
                                     } else {
@@ -183,7 +183,7 @@ Item {
                                 } else {
                                     timeLineMediaPlayer.source = newSource
                                     timeLineMediaPlayer.pendingPosition = nextClip.start * 1000
-                                    // 保持当前播放状态
+                                    //保持当前播放状态
                                     timeLineMediaPlayer.pendingPlay = playId.isplay
                                 }
                                 return
@@ -552,7 +552,7 @@ Item {
         materialModel = true
         clips = mediaClips
         totalDuration = Duration * 1000
-        mediaType = "video"  // 时间线仅支持视频
+        mediaType = "video"  //时间线仅支持视频
 
         if (timelineVideoOutput.parent !== mediaId) {
             timelineVideoOutput.parent = mediaId

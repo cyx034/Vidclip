@@ -60,7 +60,7 @@ Item{
         id: exportDialog
         modal: true
         width: 680
-        height: 500
+        height: 600
         anchors.centerIn: parent
         padding: 0
         background: Rectangle {
@@ -546,9 +546,6 @@ Item{
                     color: Style.textcolor
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                }
-                onClicked: {
-                    //调用选择第一帧为封面函数
                 }
             }
 

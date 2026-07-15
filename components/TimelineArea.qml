@@ -46,9 +46,9 @@ Item {
 
     component MToolButton:ToolButton{
         checkable: true
-        // 设置字体大小
+        //设置字体大小
         font.pixelSize: Style.fontSizeNormal
-        // 设置文本颜色 (通过palette)
+        //设置文本颜色 (通过palette)
         palette.text: Style.textcolor
         palette.buttonText: Style.textcolor
         icon.width: 28
@@ -106,7 +106,7 @@ Item {
             anchors.rightMargin: 4
             anchors.verticalCenter: parent.verticalCenter
             action: Actions._export
-            display: Button.TextOnly   // 只显示文字，隐藏图标
+            display: Button.TextOnly   //只显示文字，隐藏图标
 
             palette.text: Style.textcolor
             palette.buttonText: Style.textcolor
@@ -167,6 +167,47 @@ Item {
                 height: 3*pixelsPerSecond/16*9+4
                 color: Style.t_shaft
 
+                //移动位置指示线
+                Rectangle {
+                    id: dropIndicator
+                    visible: false
+                    width: 3
+                    height: parent.height
+                    color: "#4CAF50"  //绿色
+                    radius: 2
+                    x: 0
+                    z: 10
+                }
+
+                Rectangle {
+                    id: dragClone
+                    visible: false
+                    z: 100
+                    color: "transparent"
+                    property int sourceIndex: -1
+
+                    Row {
+                        anchors.fill: parent
+                        Repeater {
+                            model: dragClone.visible ? clipModel.get(dragClone.sourceIndex)?.source?.urls || [] : []
+                            Image {
+                                width: dragClone.height / 16 * 9
+                                height: dragClone.height
+                                source: modelData
+                                fillMode: Image.PreserveAspectCrop
+                                clip: true
+                            }
+                        }
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        border.color: "#FFFFFF"
+                        radius: 10
+                        border.width: 4
+                        color: Qt.rgba(255,255, 255, 0.2)
+                    }
+                }
+
                 ListView{
                     id: timeThumbnailViewId
                     anchors.fill: parent
@@ -174,56 +215,232 @@ Item {
                     orientation: ListView.Horizontal
                     model: clipModel
                     currentIndex:-1
-                    delegate:Rectangle {
-                        id:delegateRectId
-                        width:model.source.duration*root.pixelsPerSecond
-                        height:3*pixelsPerSecond/16*9+4
+                    spacing: 0
+
+                    property var dropIndicatorRef: dropIndicator
+                    property var dragCloneRef: dragClone
+                    property int dragFromIndex: -1
+                    property int dragToIndex: -1
+                    property real dragStartX: 0
+
+                    delegate: Rectangle {
+                        id: delegateRectId
+                        width: model.source.duration * root.pixelsPerSecond
+                        height: 3 * pixelsPerSecond / 16 * 9 + 4
                         color: "transparent"
                         property var urls: model.source.urls
-                        Row{
+                        property bool isDragging: false
+                        property real originalX: 0
+                        property real pressX: 0
+                        property real pressY: 0
+
+                        Row {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            Repeater{
-                                model:urls
-                                Image{
-                                    width: 3*pixelsPerSecond
-                                    height:width/16*9
-                                    source:modelData
+                            Repeater {
+                                model: urls
+                                Image {
+                                    width: 3 * pixelsPerSecond
+                                    height: width / 16 * 9
+                                    source: modelData
                                     fillMode: Image.PreserveAspectCrop
                                     clip: true
                                 }
                             }
                         }
-                        Rectangle{
-                            id:broderId
-                            anchors.fill:parent
-                            border.color: (timeThumbnailViewId.currentIndex === index  || hoverId.hovered) ? "#ffffff" : "transparent"
+
+                        Rectangle {
+                            id: borderId
+                            anchors.fill: parent
+                            border.color: (timeThumbnailViewId.currentIndex === index || hoverId.hovered) ? "#ffffff" : "transparent"
                             radius: 10
                             border.width: 2
                             color: "transparent"
                         }
-                        HoverHandler {
-                            id:hoverId
+
+                        DragHandler {
+                            id: dragHandler
+                            target: null
+                            xAxis.enabled: true
+                            yAxis.enabled: false
+                            grabPermissions: PointerHandler.CanTakeOverFromHandlersOfDifferentType |
+                                             PointerHandler.CanTakeOverFromItems
+
+                            property real dragStartX: 0
+                            property int fromIndex: index
+                            property bool hasMoved: false
+                            property real startX: 0
+
+                            onActiveChanged: {
+                                if (active) {
+                                    //开始拖拽
+                                    hasMoved = false
+                                    fromIndex = index
+                                    startX = delegateRectId.x
+                                    delegateRectId.isDragging = true
+                                    delegateRectId.originalX = delegateRectId.x
+                                    timeThumbnailViewId.currentIndex = index
+                                    clipInformation(model.source)
+
+                                    timeThumbnailViewId.dragFromIndex = index
+                                    timeThumbnailViewId.dragStartX = delegateRectId.x
+
+                                    timeThumbnailViewId.dragCloneRef.visible = true
+                                    timeThumbnailViewId.dragCloneRef.sourceIndex = index
+                                    timeThumbnailViewId.dragCloneRef.x = delegateRectId.x
+                                    timeThumbnailViewId.dragCloneRef.y = delegateRectId.y
+                                    timeThumbnailViewId.dragCloneRef.width = delegateRectId.width
+                                    timeThumbnailViewId.dragCloneRef.height = delegateRectId.height
+
+                                    delegateRectId.opacity = 0.4
+
+                                    pushUndoState()
+                                    console.log("开始拖拽:", index)
+                                } else {
+                                    finishDrag()
+                                }
+                            }
+
+                            onTranslationChanged: {
+                                let deltaX = translation.x
+                                let distance = Math.abs(deltaX)
+
+                                if (distance > 5) {
+                                    hasMoved = true
+                                }
+
+                                if (!hasMoved) return
+
+                                let newX = startX + deltaX
+                                if (newX < 0) newX = 0
+
+                                timeThumbnailViewId.dragCloneRef.x = newX
+
+                                let centerX = newX + delegateRectId.width / 2
+                                let targetIndex = timeThumbnailViewId.indexAt(centerX + 10, 0)
+
+                                if (targetIndex < 0 || targetIndex === index) {
+                                    let lastItem = timeThumbnailViewId.itemAtIndex(clipModel.count - 1)
+                                    if (lastItem && newX > lastItem.x + lastItem.width) {
+                                        targetIndex = clipModel.count
+                                    } else {
+                                        targetIndex = index
+                                    }
+                                }
+
+                                //更新移动显示线
+                                if (targetIndex >= 0 && targetIndex !== index) {
+                                    let targetX = 10
+                                    if (targetIndex < clipModel.count) {
+                                        let targetItem = timeThumbnailViewId.itemAtIndex(targetIndex)
+                                        if (targetItem) {
+                                            targetX = targetItem.x + 10
+                                        }
+                                    } else {
+                                        let lastItem = timeThumbnailViewId.itemAtIndex(clipModel.count - 1)
+                                        if (lastItem) {
+                                            targetX = lastItem.x + 10 + lastItem.width
+                                        }
+                                    }
+                                    timeThumbnailViewId.dropIndicatorRef.visible = true
+                                    timeThumbnailViewId.dropIndicatorRef.x = targetX - 1
+                                    timeThumbnailViewId.dragToIndex = targetIndex
+                                } else {
+                                    timeThumbnailViewId.dropIndicatorRef.visible = false
+                                    timeThumbnailViewId.dragToIndex = -1
+                                }
+                            }
+
+                            function finishDrag() {
+                                timeThumbnailViewId.dragCloneRef.visible = false
+                                delegateRectId.opacity = 1.0
+                                delegateRectId.isDragging = false
+                                timeThumbnailViewId.dropIndicatorRef.visible = false
+
+                                if (hasMoved) {
+                                    let fromIndex = timeThumbnailViewId.dragFromIndex
+                                    let toIndex = timeThumbnailViewId.dragToIndex
+
+                                    if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
+                                        clipModel.move(fromIndex, toIndex, 1)
+                                        updateClipsTimeline()
+                                        updateTotalDuration()
+
+                                        let seekTime = (delegateRectId.originalX + dragHandler.translation.x) / pixelsPerSecond
+                                        if (seekTime < 0) seekTime = 0
+                                        if (seekTime > totalDuration) seekTime = totalDuration
+
+                                        syncDataToPreview(seekTime)
+                                        setPointerPosition(seekTime)
+                                        timeThumbnailViewId.currentIndex = toIndex
+                                        seekRequested(seekTime)
+                                        console.log("片段从", fromIndex, "移动到", toIndex)
+                                    } else {
+                                        //拖拽无效，取消undo
+                                        if (undoStack.length > 0) {
+                                            undoStack.pop()
+                                            updateUndoButtons()
+                                        }
+                                        delegateRectId.x = delegateRectId.originalX
+                                    }
+                                } else {
+                                    if (undoStack.length > 0) {
+                                        undoStack.pop()
+                                        updateUndoButtons()
+                                    }
+                                    delegateRectId.x = delegateRectId.originalX
+                                }
+
+                                timeThumbnailViewId.dragFromIndex = -1
+                                timeThumbnailViewId.dragToIndex = -1
+                                console.log("释放完成")
+                            }
                         }
-                        TapHandler{
-                            id:tapId
-                            onTapped: (event)=> {
+
+
+                        TapHandler {
+                            id: tapHandler
+                            acceptedButtons: Qt.LeftButton
+                            grabPermissions: PointerHandler.CanTakeOverFromHandlersOfDifferentType |
+                                             PointerHandler.CanTakeOverFromItems
+
+                            onTapped: function(eventPoint) {
+                                if (dragHandler.active || delegateRectId.isDragging) return
+
+                                console.log("点击片段:", index)
+
+                                //选中片段
                                 timeThumbnailViewId.currentIndex = index
-                                event.accepted = true
                                 clipInformation(model.source)
 
-                                let time = (tapId.point.position.x - 3) / pixelsPerSecond
-                                time = Math.max(0, Math.min(time, totalDuration))
-                                console.log("open" + time)
+                                //计算点击位置
+                                let localX = eventPoint.position.x
+                                let absoluteX = delegateRectId.x + 10 + localX
 
-                                //seekPause()
+                                //计算时间
+                                let time = (absoluteX - 3) / pixelsPerSecond
+                                time = Math.max(0, Math.min(time, totalDuration))
+
+                                //移动指针
+                                timePointerId.x = absoluteX
+
+                                console.log("点击位置:", "absoluteX:", absoluteX, "time:", time)
+
                                 openTimeLineMedia(time)
                                 setPointerPosition(time)
                                 seekRequested(time)
 
+                                //确保undo被取消（如果之前有保存的话）
+                                if (undoStack.length > 0) {
+                                    undoStack.pop()
+                                    updateUndoButtons()
+                                }
                             }
                         }
 
+                        HoverHandler {
+                            id: hoverId
+                        }
                     }
                 }
 
@@ -261,7 +478,7 @@ Item {
                     }
 
                     DragHandler {
-                        id: dragHandler
+                        id: dragHandlerId
                         target: timePointerId
                         xAxis.enabled:true
                         yAxis.enabled: false
@@ -325,7 +542,7 @@ Item {
                             }
 
                             if (mediaSource.urls.length <= 0) {
-                                timeLinePreview(mediaSource)   // 异步生成缩略图，完成后会触发 mediaReady
+                                timeLinePreview(mediaSource)
                                 return
                             } else {
                                 let helper = Qt.createQmlObject('import Vidclip 1.0; VideoClip {}', root)
@@ -346,23 +563,51 @@ Item {
 
             }
 
-            TapHandler{
-                onTapped:(eventPoint)=> {
-                    //console.log("hhhhhhhhhhhh" + eventPoint.position)
+            TapHandler {
+                id: timelineTapHandler
+                acceptedButtons: Qt.LeftButton
+                onTapped: (eventPoint)=> {
                     let pos = eventPoint.position
-                    timePointerId.x = pos.x
-                    let posInListView = pos
-                    if (pos.y > videoLineId.y && pos.y<videoLineId.y+timeThumbnailViewId.height) {
-                        return
+                    let time = (pos.x - 3) / pixelsPerSecond
+                    time = Math.max(0, Math.min(time, totalDuration))
+
+                    //检查是否点击在视频轨道上的片段区域
+                    if (pos.y > videoLineId.y && pos.y < videoLineId.y + timeThumbnailViewId.height) {
+                        //检查是否点击在某个片段上
+                        let clickedIndex = timeThumbnailViewId.indexAt(pos.x - 10, 0)
+                        if (clickedIndex >= 0 && clickedIndex < clipModel.count) {
+                            //由 delegate 的 TapHandler 处理
+                            return
+                        }
                     }
 
+                    //点击在空白区域，移动指针并跳转
+                    timePointerId.x = pos.x
                     timeThumbnailViewId.currentIndex = -1
+                    pushUndoState()
+                    //确保时间不超出范围
+                    time = (pos.x - 3) / pixelsPerSecond
+                    time = Math.max(0, Math.min(time, totalDuration))
+
+                    openTimeLineMedia(time)
+                    setPointerPosition(time)
+                    seekRequested(time)
                 }
             }
         }
     }
 
-    // 从 clipModel 重建 clips 数组
+    //更新所有片段的时间轴位置（按顺序排列）
+    function updateClipsTimeline() {
+        let currentTime = 0
+        for (let i = 0; i < clipModel.count; i++) {
+            let clip = clipModel.get(i).source
+            clip.timelineStart = currentTime
+            currentTime += clip.duration / clip.speed
+        }
+    }
+
+    //从 clipModel 重建 clips 数组
     function buildClipsFromModel() {
         var newClips = []
         for (var i = 0; i < clipModel.count; ++i) {
@@ -378,7 +623,7 @@ Item {
         return newClips
     }
 
-    // 同步数据到预览组件，同时更新 root.clips
+    //同步数据到预览组件，同时更新 root.clips
     function syncDataToPreview(seekTime) {
         var newClips = buildClipsFromModel()
         root.clips = newClips
@@ -498,6 +743,7 @@ Item {
         clipModel.insert(index, { "source": left })
         clipModel.insert(index + 1, { "source": right })
 
+        updateClipsTimeline()
         updateTotalDuration()
         setPointerPosition(currentTime)
         syncDataToPreview(currentTime)
@@ -527,6 +773,7 @@ Item {
             if (!nextClip) continue
             nextClip.timelineStart = nextClip.timelineStart - delta
         }
+        updateClipsTimeline()
         updateTotalDuration()
         setPointerPosition(currentTime)
         syncDataToPreview(currentTime)
@@ -556,6 +803,7 @@ Item {
             if (!nextClip) continue
             nextClip.timelineStart = nextClip.timelineStart - delta
         }
+        updateClipsTimeline()
         updateTotalDuration()
         setPointerPosition(currentTime)
         syncDataToPreview(currentTime)
@@ -578,6 +826,7 @@ Item {
             nextClip.timelineStart = nextClip.timelineStart - deletedDuration
             if (nextClip.timelineStart < 0) nextClip.timelineStart = 0
         }
+        updateClipsTimeline()
         updateTotalDuration()
         timeThumbnailViewId.currentIndex = -1
         if (clipModel.count === 0) {
@@ -605,6 +854,7 @@ Item {
         setPointerPosition(seekTime)
         syncDataToPreview(seekTime)
     }
+
     function pushUndoState() {
         var state = saveClipState()
         undoStack.push(state)

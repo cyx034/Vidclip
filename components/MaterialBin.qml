@@ -76,16 +76,16 @@ Item{
         id: gridView
         x: Style.spacing
         y: importButtonId.height + Style.spacing*2
-        width: parent.width - x - Style.spacing   // 让宽度自适应
+        width: parent.width - x - Style.spacing   //让宽度自适应
         height: parent.height - y - Style.spacing
-        cellWidth: thumbWidth + Style.spacing               // 每个单元格宽
-        cellHeight: thumbHeight + Style.spacing                // 每个单元格高
+        cellWidth: thumbWidth + Style.spacing               //每个单元格宽
+        cellHeight: thumbHeight + Style.spacing                //每个单元格高
         model: materialModel
         clip: true
 
         delegate: Rectangle {
-            width: thumbWidth                // 实际缩略图区域宽
-            height: thumbHeight               // 实际缩略图区域高
+            width: thumbWidth                //实际缩略图区域宽
+            height: thumbHeight               //实际缩略图区域高
             color: "transparent"
 
             Image {
@@ -124,7 +124,7 @@ Item{
             TapHandler {
                 onTapped: {
                     currentIndex = index
-                    // 发出选中信号，传递文件URL和类型
+                    //发出选中信号，传递文件URL和类型
                     var fileUrl = "file://" + model.source.filePath
                     mediaSelected(fileUrl, model.type)
                 }
@@ -140,7 +140,7 @@ Item{
         let parts = filePath.split('/')
         let fileName = parts[parts.length - 1]
 
-        let fileType = getFileType(fileName)   // 返回 "video", "audio", "image"
+        let fileType = getFileType(fileName)   //返回 "video", "audio", "image"
 
         let helper = Qt.createQmlObject('import Vidclip 1.0; MediaSource {}', root)
         let mediaSource = helper.fromFile(filePath,fileType)

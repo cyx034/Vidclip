@@ -24,7 +24,7 @@ Item {
         font.pixelSize: 15
     }
 
-    // 默认信息面板
+    //默认信息面板
     Item {
         id: infoItemId
         anchors.fill: parent
@@ -94,7 +94,7 @@ Item {
         }
     }
 
-    // 剪辑参数面板
+    //剪辑参数面板
     Item {
         id: labelId
         anchors.fill: parent
@@ -131,7 +131,7 @@ Item {
             color: Style.border
         }
 
-        // 通用控件组件
+        //通用控件组件
         component MSpinBox: SpinBox {
             editable: true
             implicitWidth: 75
@@ -174,7 +174,7 @@ Item {
             }
         }
 
-        // StackLayout 内容
+        //StackLayout 内容
         StackLayout {
             anchors.top: rect2Id.bottom
             anchors.topMargin: 6
@@ -183,7 +183,7 @@ Item {
             anchors.right: parent.right
             currentIndex: labelId.currentIndex
 
-            // 视频页
+            //视频页
             Item {
                 id: videoItemId
                 implicitWidth: parent.width - 5
@@ -211,10 +211,10 @@ Item {
                         Layout.fillWidth: true
                     }
 
-                    // 等比缩放
+                    //等比缩放
                     RowLayout {
                         id: uniformRow
-                        visible: true // 由代码控制
+                        visible: true //由代码控制
                         spacing: 8
                         Label {
                             text: qsTr("Scale")
@@ -251,7 +251,7 @@ Item {
                         }
                     }
 
-                    // 非等比缩放宽度
+                    //非等比缩放宽度
                     RowLayout {
                         id: nonUniformWidthRow
                         visible: false
@@ -289,7 +289,7 @@ Item {
                         }
                     }
 
-                    // 非等比缩放高度
+                    //非等比缩放高度
                     RowLayout {
                         id: nonUniformHeightRow
                         visible: false
@@ -327,7 +327,7 @@ Item {
                         }
                     }
 
-                    // 等比开关
+                    //等比开关
                     RowLayout {
                         spacing: 50
                         Label {
@@ -347,7 +347,7 @@ Item {
                         }
                     }
 
-                    // 位置
+                    //位置
                     RowLayout {
                         spacing: 15
                         Label {
@@ -385,7 +385,7 @@ Item {
                         }
                     }
 
-                    // 旋转
+                    //旋转
                     RowLayout {
                         spacing: 20
                         Label {
@@ -411,7 +411,7 @@ Item {
                 }
             }
 
-            // 音频页
+            //音频页
             Item {
                 id: audioItemId
                 RowLayout {
@@ -453,7 +453,7 @@ Item {
                 }
             }
 
-            // 变速页
+            //变速页
             Item {
                 id: speedItemId
                 ColumnLayout {
@@ -532,7 +532,7 @@ Item {
     function updateUI() {
         if (!currentClip) return
 
-        // 视频参数
+        //视频参数
         scaleSliderId.value = currentClip.scale
         scaleSpinBoxId.value = currentClip.scale
         scaleWidthSliderId.value = currentClip.scaleX
@@ -544,11 +544,11 @@ Item {
         rotationSpinBox.value = currentClip.rotation
         switchId.checked = currentClip.uniformScale
 
-        // 音频
+        //音频
         volumeSliderId.value = currentClip.volume
         volumeSpinBoxId.value = currentClip.volume
 
-        // 变速
+        //变速
         mulitipleSliderId.value = currentClip.speed
         mulitipleSpinBoxId.value = currentClip.speed
         durationDisplay.text = currentClip.duration.toFixed(2) + "s"
@@ -566,7 +566,7 @@ Item {
         nonUniformHeightRow.visible = !currentClip.uniformScale
     }
 
-    // 设置当前剪辑信息，更新 UI
+    //设置当前剪辑信息，更新 UI
     function setClipInfo(clip) {
         infoItemId.visible = false
         labelId.visible = true

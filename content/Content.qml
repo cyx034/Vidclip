@@ -127,7 +127,7 @@ Item {
             parameterPanelId.setClipInfo(clip)
         })
 
-        // 移除所有 parameterPanelId.xxxChange 连接
+        //移除所有 parameterPanelId.xxxChange 连接
 
         timelineAreaId.updateDuration.connect(function(duration){
             parameterPanelId.totalDuration = duration

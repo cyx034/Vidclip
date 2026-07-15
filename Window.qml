@@ -224,7 +224,7 @@ ApplicationWindow {
                 })
             }
 
-            // ========== 直接使用 settings.savePath 作为完整输出路径 ==========
+            //直接使用 settings.savePath 作为完整输出路径
             var outputPath = settings.savePath
             if (outputPath.startsWith("file://")) outputPath = outputPath.substring(7)
 
